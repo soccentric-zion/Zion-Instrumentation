@@ -1,0 +1,27 @@
+{
+  "$id": "https://arches.example/schemas/fault-rules.schema.json",
+  "title": "Kernel-log anomaly signature rule set (REQ §7.5)",
+  "type": "object",
+  "required": ["rules"],
+  "properties": {
+    "version": {"type": "integer"},
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name","pattern","fault_id","severity","x733_type"],
+        "properties": {
+          "name": {"type": "string"},
+          "pattern": {"type": "string"},
+          "fault_id": {"type": "string", "pattern": "^0x5_[0-9a-fA-F]{2}_[0-9a-fA-F]_[0-9a-fA-F]{4}$"},
+          "severity": {"type": "string", "enum": ["INFO","WARNING","MINOR","MAJOR","CRITICAL"]},
+          "x733_type": {"type": "string", "enum": ["equipment","communications","processing-error","quality-of-service","environmental"]},
+          "probable_cause": {"type": "string"},
+          "dedup_key": {"type": "string"},
+          "dedup_window_s": {"type": "integer", "minimum": 1},
+          "rate_limit_per_s": {"type": "number", "minimum": 0.1}
+        }
+      }
+    }
+  }
+}

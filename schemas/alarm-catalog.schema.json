@@ -1,0 +1,27 @@
+{
+  "$id": "https://arches.example/schemas/alarm-catalog.schema.json",
+  "title": "Master alarm catalog (REQ §8)",
+  "type": "object",
+  "required": ["entries"],
+  "properties": {
+    "version": {"type": "integer"},
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id","name","severity","probable_cause","specific_problem","description","escalation","auto_clear","hq_reportable"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^0x[0-9a-fA-F]_[0-9a-fA-F]{2}_[0-9a-fA-F]_[0-9a-fA-F]{4}$"},
+          "name": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+          "severity": {"type": "string", "enum": ["INFO","WARNING","MINOR","MAJOR","CRITICAL"]},
+          "probable_cause": {"type": "string"},
+          "specific_problem": {"type": "string"},
+          "description": {"type": "string"},
+          "escalation": {"type": "string", "enum": ["none","promote-after-15m","promote-after-1h"]},
+          "auto_clear": {"type": "string", "enum": ["manual","auto"]},
+          "hq_reportable": {"type": "boolean"}
+        }
+      }
+    }
+  }
+}

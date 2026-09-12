@@ -1,0 +1,137 @@
+@PACKAGE_INIT@
+
+# Capture our own prefix IMMEDIATELY, before any find_package below.
+#
+# PACKAGE_PREFIX_DIR is a plain variable that every @PACKAGE_INIT@ block sets,
+# so it is shared by every package config in the process. find_package(gRPC)
+# pulls in abseil's config, whose PACKAGE_INIT overwrites it with /usr -- and a
+# set_and_check() after that point silently resolves against the wrong prefix.
+# Caught by actually building docs/example-client against a staged install:
+# instrumentation_PROTO_DIR came out as /usr/share/instrumentation/proto.
+set(_instrumentation_PREFIX_DIR "${PACKAGE_PREFIX_DIR}")
+
+# instrumentationConfig.cmake — build an Arches Instrumentation client.
+#
+# Colocated applications talk to istate over gRPC-over-UDS. They do NOT link a
+# prebuilt stub library from this package, and that is deliberate: the
+# generated protobuf/gRPC sources must be compiled by the same toolchain, with
+# the same protobuf runtime, as the application itself. Shipping a static
+# archive across a Yocto sysroot boundary is exactly how ODR and ABI mismatches
+# happen. Instead this package installs the .proto files and gives you a
+# function that generates stubs into your own target.
+#
+# Usage:
+#
+#   find_package(instrumentation REQUIRED)
+#   add_executable(my_app main.cpp)
+#   instrumentation_generate_client(my_app PROTOS istate.proto)
+#   target_link_libraries(my_app PRIVATE instrumentation::client_deps)
+#
+# `istate.proto` carries ApplicationApi, which is the only surface an
+# application needs: GetSystemInfo, GetConfig, SetAppConfig, RaiseAlarm,
+# ClearAlarm, RegisterMetric, ReportMetrics. It imports common.proto, which is
+# resolved automatically from the same directory.
+#
+# See docs/example-client/ for a complete, compilable example.
+
+include(CMakeFindDependencyMacro)
+find_dependency(Protobuf)
+
+# gRPC ships no CMake config on some targets (Ubuntu 22.04 / JetPack 6, and
+# some Yocto configurations), so fall back to pkg-config the same way this
+# project's own build does.
+find_package(gRPC QUIET)
+if(NOT TARGET gRPC::grpc++)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(GRPCPP REQUIRED grpc++)
+endif()
+
+# Rebuilt from our saved prefix rather than from @PACKAGE_...@, which expands
+# using whatever PACKAGE_PREFIX_DIR currently holds.
+set(instrumentation_PROTO_DIR "${_instrumentation_PREFIX_DIR}/@INSTR_PROTO_INSTALL_DIR@")
+if(NOT EXISTS "${instrumentation_PROTO_DIR}")
+  message(FATAL_ERROR "instrumentation: proto directory not found: ${instrumentation_PROTO_DIR}")
+endif()
+set(instrumentation_PROTOS
+    common.proto istate.proto networkd.proto monitord.proto hardware.proto
+    faults.proto alarms.proto logmanager.proto telemetry.proto ota.proto
+    backup.proto)
+
+# An interface target carrying just the link/include requirements a generated
+# client needs. Not a stub library — see the note above.
+if(NOT TARGET instrumentation::client_deps)
+  add_library(instrumentation::client_deps INTERFACE IMPORTED)
+  if(TARGET gRPC::grpc++)
+    set_target_properties(instrumentation::client_deps PROPERTIES
+      INTERFACE_LINK_LIBRARIES "gRPC::grpc++;protobuf::libprotobuf")
+  else()
+    set_target_properties(instrumentation::client_deps PROPERTIES
+      INTERFACE_LINK_LIBRARIES "${GRPCPP_LIBRARIES};protobuf::libprotobuf"
+      INTERFACE_INCLUDE_DIRECTORIES "${GRPCPP_INCLUDE_DIRS}")
+  endif()
+endif()
+
+# instrumentation_generate_client(<target> PROTOS <a.proto> [<b.proto> ...])
+#
+# Generates C++ message and gRPC stub sources for the named protos and adds
+# them to <target>, along with the include directory they land in.
+function(instrumentation_generate_client TARGET)
+  cmake_parse_arguments(ARG "" "" "PROTOS" ${ARGN})
+  if(NOT ARG_PROTOS)
+    message(FATAL_ERROR "instrumentation_generate_client: PROTOS is required")
+  endif()
+
+  if(TARGET gRPC::grpc_cpp_plugin)
+    get_target_property(_instr_grpc_plugin gRPC::grpc_cpp_plugin LOCATION)
+  else()
+    find_program(_instr_grpc_plugin grpc_cpp_plugin REQUIRED)
+  endif()
+
+  set(_gen "${CMAKE_CURRENT_BINARY_DIR}/instr_gen_${TARGET}")
+  file(MAKE_DIRECTORY "${_gen}")
+
+  # Resolve imports transitively. istate.proto alone imports common, telemetry,
+  # faults and logmanager, and protoc needs every one of them generated -- the
+  # generated istate.grpc.pb.cc does #include "telemetry.pb.h". Making the
+  # caller list the closure by hand is a trap: it compiles until someone adds
+  # an import to a .proto they do not own.
+  set(_want ${ARG_PROTOS})
+  set(_seen)
+  while(_want)
+    list(POP_FRONT _want _p)
+    get_filename_component(_stem "${_p}" NAME_WE)
+    if(_stem IN_LIST _seen)
+      continue()
+    endif()
+    list(APPEND _seen "${_stem}")
+    file(STRINGS "${instrumentation_PROTO_DIR}/${_stem}.proto" _imports
+         REGEX "^[ \t]*import[ \t]+\"[^\"]+\.proto\"")
+    foreach(_line IN LISTS _imports)
+      string(REGEX REPLACE "^[ \t]*import[ \t]+\"([^\"]+)\".*$" "\\1" _dep "${_line}")
+      list(APPEND _want "${_dep}")
+    endforeach()
+  endwhile()
+
+  set(_srcs)
+  foreach(_stem IN LISTS _seen)
+    list(APPEND _srcs "${_gen}/${_stem}.pb.cc" "${_gen}/${_stem}.grpc.pb.cc")
+    add_custom_command(
+      OUTPUT "${_gen}/${_stem}.pb.cc" "${_gen}/${_stem}.pb.h"
+             "${_gen}/${_stem}.grpc.pb.cc" "${_gen}/${_stem}.grpc.pb.h"
+      COMMAND protobuf::protoc
+      ARGS "--cpp_out=${_gen}" "--grpc_out=${_gen}"
+           "--plugin=protoc-gen-grpc=${_instr_grpc_plugin}"
+           "-I${instrumentation_PROTO_DIR}"
+           "${instrumentation_PROTO_DIR}/${_stem}.proto"
+      DEPENDS "${instrumentation_PROTO_DIR}/${_stem}.proto"
+      COMMENT "protoc (instrumentation) ${_stem}.proto"
+      VERBATIM)
+  endforeach()
+
+  target_sources(${TARGET} PRIVATE ${_srcs})
+  target_include_directories(${TARGET} PRIVATE "${_gen}")
+  # Generated protobuf code is not warning-clean and is not ours to fix.
+  set_source_files_properties(${_srcs} PROPERTIES COMPILE_OPTIONS "-w")
+endfunction()
+
+check_required_components(instrumentation)

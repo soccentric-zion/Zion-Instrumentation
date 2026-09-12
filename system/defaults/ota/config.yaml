@@ -1,0 +1,9 @@
+# ota configuration (defaults)
+enabled: true
+confirm_timeout_s: 600
+min_version: 0.0.0
+bandwidth_limit_bytes_per_s: 0
+maintenance_windows:
+  - day: '*'
+    start: '02:00'
+    end: '04:00'

@@ -1,0 +1,14 @@
+# BuildKit applies this when the context is the repo root and the Dockerfile
+# is passed with -f. Nothing is COPYed into the image today — the ignore list
+# exists so context transfer stays small when that changes.
+.git
+build
+build-*
+docker
+docs
+test
+yocto
+system
+REQ.md
+missing.md
+.vscode

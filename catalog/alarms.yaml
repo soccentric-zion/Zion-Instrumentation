@@ -1,0 +1,596 @@
+# Arches Instrumentation — master alarm catalog (REQ §8).
+# Code-generated into a shared C++ header at build time; the same catalog is
+# consumed by HQ so alarms render without hardcoding.
+# 32-bit ID layout (locked):
+#   [31:28] domain  hardware / software / network / application / fault
+#   [27:20] module  which daemon or subsystem (256)
+#   [19:16] type    X.733: equipment / communications / processing-error /
+#                   quality-of-service / environmental
+#   [15:0]  index   alarm within that module (65536)
+# Per entry: id, symbolic name, default severity, probable cause, specific
+# problem, description, escalation rule, auto-clear policy, HQ-reportable.
+version: 1
+entries:
+  # ---- istate (module 0x01, software) ----
+  - id: 0x1_01_3_0001
+    name: istate_proto_mismatch
+    severity: MAJOR
+    probable_cause: software-version-mismatch
+    specific_problem: spoke-proto-schema-mismatch
+    description: A spoke registered with a different proto schema version; registration refused.
+    escalation: none
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x1_01_3_0002
+    name: istate_pst_corrupt
+    severity: CRITICAL
+    probable_cause: storage-media-failure
+    specific_problem: pst-corrupt-both-copies
+    description: /pst failed checksum validation on both primary and redundant copy.
+    escalation: promote-after-1h
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x1_01_3_0003
+    name: istate_budget_warning
+    severity: WARNING
+    probable_cause: storage-capacity-issue
+    specific_problem: consumer-budget-80pct
+    description: A per-consumer storage budget reached 80 percent; alarm raised before the limit.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x1_01_3_0004
+    name: istate_budget_exceeded
+    severity: MAJOR
+    probable_cause: storage-capacity-issue
+    specific_problem: consumer-budget-exceeded
+    description: A per-consumer storage budget was exceeded; writes are being refused.
+    escalation: promote-after-1h
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x1_01_4_0005
+    name: istate_unclean_shutdown
+    severity: MINOR
+    probable_cause: power-loss
+    specific_problem: clean-shutdown-marker-missing
+    description: The previous shutdown was not clean; reported on next boot.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x1_01_3_0006
+    name: istate_spool_protected_full
+    severity: MAJOR
+    probable_cause: connectivity-issue
+    specific_problem: spool-full-protected-only
+    description: Northbound spool full and only alarms/faults remain; protected records refused.
+    escalation: promote-after-1h
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x1_01_4_0007
+    name: istate_clock_unavailable
+    severity: MINOR
+    probable_cause: environmental
+    specific_problem: no-time-source-locked
+    description: No time source is locked; records carry monotonic time and are re-stamped on lock.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+
+  # ---- networkd (module 0x02, network) ----
+  - id: 0x3_02_2_0001
+    name: netd_link_down
+    severity: MINOR
+    probable_cause: cabling-or-link-failure
+    specific_problem: interface-link-down
+    description: A network interface lost link.
+    escalation: promote-after-15m
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x3_02_2_0002
+    name: netd_tunnel_down
+    severity: MAJOR
+    probable_cause: connectivity-issue
+    specific_problem: wireguard-tunnel-down
+    description: The HQ tunnel is down; device remains fully operational and spools northbound.
+    escalation: promote-after-1h
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x3_02_2_0003
+    name: netd_guard_revert
+    severity: WARNING
+    probable_cause: configuration-error
+    specific_problem: tunnel-loss-guard-reverted-change
+    description: A firewall or network change killed the tunnel and was auto-reverted.
+    escalation: none
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x3_02_2_0004
+    name: netd_dhcp_failure
+    severity: MINOR
+    probable_cause: dhcp-server-unavailable
+    specific_problem: lease-not-obtained
+    description: DHCP failed to obtain a lease on a DHCP-configured interface.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: false
+  - id: 0x3_02_4_0005
+    name: netd_time_unsynced
+    severity: MINOR
+    probable_cause: time-source-unavailable
+    specific_problem: chrony-unsynchronised
+    description: No time source locked (GNSS > PTP > NTP priority).
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x3_02_3_0006
+    name: netd_remote_access_opened
+    severity: WARNING
+    probable_cause: operator-action
+    specific_problem: inbound-ssh-window-opened
+    description: A time-boxed inbound SSH window was opened, attributed to a named operator.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+
+  # ---- monitord (module 0x03, hardware) ----
+  - id: 0x1_03_5_0001
+    name: mond_thermal_high
+    severity: MAJOR
+    probable_cause: cooling-failure
+    specific_problem: thermal-zone-above-warning
+    description: A thermal zone exceeded the warning threshold.
+    escalation: promote-after-15m
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x1_03_5_0002
+    name: mond_thermal_critical
+    severity: CRITICAL
+    probable_cause: cooling-failure
+    specific_problem: thermal-zone-above-critical
+    description: A thermal zone exceeded the critical threshold.
+    escalation: promote-after-15m
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x1_03_3_0003
+    name: mond_storage_near_full
+    severity: MAJOR
+    probable_cause: storage-capacity-issue
+    specific_problem: partition-above-90pct
+    description: A monitored filesystem is near full; budgets enforced before the limit.
+    escalation: promote-after-1h
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x1_03_3_0004
+    name: mond_storage_wear_predicted
+    severity: MAJOR
+    probable_cause: storage-media-wearout
+    specific_problem: wear-projection-below-threshold
+    description: Predicted remaining storage life fell below the configured threshold.
+    escalation: promote-after-1h
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x1_03_3_0005
+    name: mond_memory_pressure
+    severity: WARNING
+    probable_cause: memory-pressure
+    specific_problem: available-memory-below-threshold
+    description: Available memory below the configured threshold.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x1_03_3_0006
+    name: mond_cpu_saturation
+    severity: WARNING
+    probable_cause: processing-load
+    specific_problem: cpu-utilisation-sustained
+    description: Sustained CPU saturation detected.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: false
+
+  # ---- hardware (module 0x04, hardware) ----
+  - id: 0x1_04_1_0001
+    name: hw_device_degraded
+    severity: MAJOR
+    probable_cause: equipment-degraded
+    specific_problem: quick-check-degraded
+    description: A board device returned a degraded result from its quick health check.
+    escalation: promote-after-1h
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x1_04_1_0002
+    name: hw_device_not_present
+    severity: MAJOR
+    probable_cause: equipment-missing
+    specific_problem: presence-detection-failed
+    description: A board device in the descriptor is not present.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x1_04_1_0003
+    name: hw_gpio_stuck
+    severity: MINOR
+    probable_cause: equipment-failure
+    specific_problem: gpio-behavioural-check-failed
+    description: A GPIO line failed its toggle-and-read behavioural sanity check.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: false
+  - id: 0x1_04_1_0004
+    name: hw_led_fail
+    severity: MINOR
+    probable_cause: equipment-failure
+    specific_problem: led-blink-ack-missing
+    description: A board LED failed its blink-acknowledgement check.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: false
+  - id: 0x1_04_1_0005
+    name: hw_can_fail
+    severity: MAJOR
+    probable_cause: bus-failure
+    specific_problem: can-loopback-failed
+    description: A CAN interface failed its loopback behavioural check.
+    escalation: promote-after-15m
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x1_04_1_0006
+    name: hw_usb_reset_fail
+    severity: MINOR
+    probable_cause: equipment-failure
+    specific_problem: usb-reset-not-acknowledged
+    description: A USB device reset did not complete.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: false
+  - id: 0x1_04_1_0007
+    name: hw_device_fail
+    severity: CRITICAL
+    probable_cause: equipment-failure
+    specific_problem: quick-check-failed
+    description: A board device failed its quick health check.
+    escalation: promote-after-1h
+    auto_clear: manual
+    hq_reportable: true
+
+  # ---- faults (module 0x05, fault domain) ----
+  - id: 0x5_05_1_0001
+    name: flt_bus_error
+    severity: MAJOR
+    probable_cause: bus-error
+    specific_problem: kernel-bus-error-signature
+    description: Kernel log matched the bus-error signature.
+    escalation: none
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x5_05_1_0002
+    name: flt_ecc_event
+    severity: MAJOR
+    probable_cause: memory-error
+    specific_problem: ecc-corrected-or-uncorrected
+    description: Kernel log matched an ECC event signature.
+    escalation: promote-after-15m
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x5_05_2_0003
+    name: flt_link_reset
+    severity: MINOR
+    probable_cause: link-reset
+    specific_problem: driver-link-reset
+    description: Kernel log matched a driver link-reset signature.
+    escalation: none
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x5_05_5_0004
+    name: flt_thermal_throttle
+    severity: WARNING
+    probable_cause: thermal-throttling
+    specific_problem: cpu-throttled
+    description: Kernel log matched a thermal throttling signature.
+    escalation: none
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x5_05_1_0005
+    name: flt_storage_error
+    severity: MAJOR
+    probable_cause: storage-media-error
+    specific_problem: block-device-error
+    description: Kernel log matched a storage error signature.
+    escalation: promote-after-15m
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x5_05_1_0006
+    name: flt_device_timeout
+    severity: MINOR
+    probable_cause: device-timeout
+    specific_problem: io-timeout
+    description: Kernel log matched a device timeout signature.
+    escalation: none
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x5_05_3_0007
+    name: flt_watchdog_trip
+    severity: CRITICAL
+    probable_cause: watchdog
+    specific_problem: hardware-watchdog-tripped
+    description: Kernel log matched a watchdog trip signature.
+    escalation: none
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x5_05_3_0008
+    name: flt_oom_kill
+    severity: MAJOR
+    probable_cause: memory-exhaustion
+    specific_problem: oom-killer-active
+    description: Kernel log matched an OOM kill signature.
+    escalation: promote-after-15m
+    auto_clear: manual
+    hq_reportable: true
+
+  # ---- alarms (module 0x06, software) ----
+  - id: 0x2_06_3_0001
+    name: alm_snapshot_failed
+    severity: MINOR
+    probable_cause: internal-error
+    specific_problem: snapshot-on-fault-capture-failed
+    description: The bounded diagnostic capture triggered by a CRITICAL alarm could not complete.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x2_06_3_0002
+    name: alm_catalog_merge_failed
+    severity: MINOR
+    probable_cause: configuration-error
+    specific_problem: catalog-regeneration-failed
+    description: The alarm catalog could not be regenerated or merged after an update.
+    escalation: none
+    auto_clear: manual
+    hq_reportable: true
+
+  # ---- logmanager (module 0x07, software) ----
+  - id: 0x2_07_3_0001
+    name: log_budget_pressure
+    severity: WARNING
+    probable_cause: storage-capacity-issue
+    specific_problem: log-budget-above-80pct
+    description: The log storage budget is above 80 percent; rotation tightened.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x2_07_2_0002
+    name: log_source_lost
+    severity: MINOR
+    probable_cause: source-unavailable
+    specific_problem: configured-source-missing
+    description: A configured log source disappeared.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: false
+  - id: 0x2_07_3_0003
+    name: log_crash_captured
+    severity: WARNING
+    probable_cause: daemon-crash
+    specific_problem: crash-forensics-captured
+    description: Crash forensics (coredump + tail) captured on abnormal daemon exit.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x2_07_3_0004
+    name: log_coredump_lost
+    severity: MINOR
+    probable_cause: storage-capacity-issue
+    specific_problem: coredump-capture-failed
+    description: A coredump could not be captured (budget or IO failure).
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+
+  # ---- telemetry (module 0x08, software) ----
+  - id: 0x2_08_3_0001
+    name: tlm_registration_conflict
+    severity: WARNING
+    probable_cause: configuration-error
+    specific_problem: duplicate-metric-registration
+    description: An application metric registration conflicted with an existing definition.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: false
+  - id: 0x2_08_3_0002
+    name: tlm_buffer_drops
+    severity: WARNING
+    probable_cause: backpressure
+    specific_problem: retention-buffer-overflow-drops
+    description: The telemetry retention buffer dropped oldest records; never faults or alarms.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+
+  # ---- ota (module 0x09, software) ----
+  - id: 0x2_09_3_0001
+    name: ota_signature_invalid
+    severity: CRITICAL
+    probable_cause: integrity-check-failure
+    specific_problem: artifact-signature-invalid
+    description: An update artifact failed signature verification before staging.
+    escalation: none
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x2_09_3_0002
+    name: ota_verify_fail
+    severity: MAJOR
+    probable_cause: integrity-check-failure
+    specific_problem: artifact-integrity-failed
+    description: An update artifact failed integrity (SHA-256) verification.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x2_09_3_0003
+    name: ota_rolled_back
+    severity: MAJOR
+    probable_cause: update-failure
+    specific_problem: unconfirmed-update-rolled-back
+    description: An update was not confirmed in time and rolled back automatically.
+    escalation: none
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x2_09_3_0004
+    name: ota_anti_rollback_refused
+    severity: MAJOR
+    probable_cause: downgrade-attempt
+    specific_problem: below-minimum-version
+    description: An update below the configured minimum version was refused.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x2_09_3_0005
+    name: ota_staging_failed
+    severity: MAJOR
+    probable_cause: storage-capacity-issue
+    specific_problem: stage-to-inactive-slot-failed
+    description: Staging the update to the inactive slot failed.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+
+  # ---- backup (module 0x0A, software) ----
+  - id: 0x2_0A_3_0001
+    name: bkp_archive_failed
+    severity: MAJOR
+    probable_cause: internal-error
+    specific_problem: archive-creation-failed
+    description: Creating a backup archive failed.
+    escalation: promote-after-1h
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x2_0A_3_0002
+    name: bkp_restore_incompatible
+    severity: MAJOR
+    probable_cause: incompatible-archive
+    specific_problem: manifest-mismatch-refused
+    description: Restore refused an incompatible archive (hardware revision or schema mismatch).
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x2_0A_3_0003
+    name: bkp_restore_failed
+    severity: CRITICAL
+    probable_cause: internal-error
+    specific_problem: transactional-restore-aborted
+    description: A transactional restore aborted; prior state left intact.
+    escalation: none
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x2_0A_4_0004
+    name: bkp_schedule_missed
+    severity: MINOR
+    probable_cause: scheduling
+    specific_problem: scheduled-backup-missed
+    description: A scheduled backup window was missed.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: false
+  # =========================================================================
+  # IV&V applications — domain 0x4 (Application), R5
+  # =========================================================================
+  #
+  # R5: an alarm is declared by an application and by nothing else. The three
+  # IV&V applications had no module allocation at all, so there was no id they
+  # could legally raise. See Task.md E-04.
+  #
+  # MODULE ALLOCATION IS ONE-WAY. The 32-bit layout is locked and HQ decodes
+  # against this file, so an id that has shipped cannot be reused to mean
+  # something else. Modules 0x01-0x0A are the ten daemons; 0x0B-0x0F are left
+  # free for a future daemon, and applications start at a clean 0x10 so the
+  # two groups stay visually distinct in a raw code:
+  #
+  #   0x10  arches-hal      owner "arches-hal"
+  #   0x11  arches-client   owner "arches-client"
+  #   0x12  arches-server   owner "arches-server"
+  #
+  # The `owner` on a RaiseAlarm call must match the name above exactly and for
+  # the life of the alarm -- an alarm raised as one owner and cleared as
+  # another does not clear.
+
+  # ---- arches-hal (module 0x10, application) ----
+  - id: 0x4_10_1_0001
+    name: hal_module_fault
+    severity: MAJOR
+    probable_cause: equipment-malfunction
+    specific_problem: hal-module-fault
+    description: A HAL hardware module reported a fault and is no longer usable for validation.
+    escalation: promote-after-1h
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x4_10_1_0002
+    name: hal_module_unavailable
+    severity: MINOR
+    probable_cause: equipment-malfunction
+    specific_problem: hal-module-absent
+    description: A HAL module declared in the registry did not enumerate on this board.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x4_10_2_0003
+    name: hal_stm32_link_lost
+    severity: MAJOR
+    probable_cause: communications-subsystem-failure
+    specific_problem: stm32-coprocessor-link-lost
+    description: The link to the STM32 real-time co-processor stopped responding.
+    escalation: promote-after-1h
+    auto_clear: auto
+    hq_reportable: true
+
+  # ---- arches-client (module 0x11, application) ----
+  - id: 0x4_11_3_0001
+    name: client_run_aborted
+    severity: MAJOR
+    probable_cause: software-error
+    specific_problem: ivv-run-aborted
+    description: An IV&V run aborted before completion; results for that run are incomplete.
+    escalation: none
+    auto_clear: manual
+    hq_reportable: true
+  - id: 0x4_11_2_0002
+    name: client_server_stream_lost
+    severity: MINOR
+    probable_cause: communications-subsystem-failure
+    specific_problem: server-stream-disconnected
+    description: The result stream to Arches-Server dropped; results are spooling locally.
+    escalation: promote-after-1h
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x4_11_4_0003
+    name: client_spool_backlog
+    severity: WARNING
+    probable_cause: storage-capacity-issue
+    specific_problem: result-spool-backlog
+    description: The local result spool is growing faster than it drains to Arches-Server.
+    escalation: none
+    auto_clear: auto
+    hq_reportable: true
+
+  # ---- arches-server (module 0x12, application) ----
+  #
+  # Arches-Server runs on an x86 host, not the Jetson. Whether it reaches an
+  # istate at all is an open question (Task.md E-07); these ids are allocated
+  # either way so the allocation does not have to be revisited once it is
+  # settled -- and because allocation is one-way, deferring it is the more
+  # expensive option.
+  - id: 0x4_12_4_0001
+    name: server_ingest_backlog
+    severity: MAJOR
+    probable_cause: queue-size-exceeded
+    specific_problem: result-ingest-backlog
+    description: Result ingest is falling behind; the client stream is being back-pressured.
+    escalation: promote-after-1h
+    auto_clear: auto
+    hq_reportable: true
+  - id: 0x4_12_3_0002
+    name: server_db_write_failed
+    severity: CRITICAL
+    probable_cause: storage-media-failure
+    specific_problem: result-store-write-failed
+    description: A write to the result store failed; run results may be lost.
+    escalation: none
+    auto_clear: manual
+    hq_reportable: true

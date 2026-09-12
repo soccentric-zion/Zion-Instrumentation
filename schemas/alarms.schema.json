@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arches.soccentric.com/schemas/alarms.schema.json",
+  "title": "alarms configuration (REQ \u00a77.6)",
+  "description": "Validated at load; a typo is a loud rejection, never a silent behavioural change (REQ \u00a79).",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Daemon enabled."
+    },
+    "log_level": {
+      "type": "string",
+      "enum": [
+        "TRACE",
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR",
+        "CRITICAL"
+      ],
+      "description": "Runtime log level for this daemon (\u00a74)."
+    },
+    "escalation_default_promote_after_s": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "escalation_sweep_interval_s": {
+      "type": "number",
+      "minimum": 0.1
+    },
+    "snapshot_on_critical": {
+      "type": "boolean",
+      "description": "Bounded diagnostic capture when a CRITICAL alarm fires (\u00a77.6)."
+    }
+  },
+  "required": [
+    "enabled"
+  ],
+  "additionalProperties": false
+}

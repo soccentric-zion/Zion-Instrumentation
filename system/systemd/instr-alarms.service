@@ -1,0 +1,35 @@
+[Unit]
+Description=Arches Instrumentation alarms
+Documentation=file:///usr/share/doc/instrumentation/interface.md
+# /pst is a separate partition (p4, label "pst"), mounted by pst.mount from
+# meta-arches. This unit's ReadWritePaths live under it and ProtectSystem=strict
+# makes a missing path a start failure, so the ordering must be explicit rather
+# than incidental. See Task.md D-04.
+RequiresMountsFor=/pst
+After=instr-istate.service instr-faults.service instr-monitord.service instr-hardware.service
+Wants=instr-istate.service instr-faults.service instr-monitord.service instr-hardware.service
+# istate owns orchestration; systemd owns restart policy and sandboxing (§7.1).
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/instr-alarms
+Restart=on-failure
+RestartSec=2s
+ReadWritePaths=/pst/state/alarms /run/instrumentation
+User=instr-alarms
+Group=instr
+ProtectSystem=strict
+PrivateTmp=yes
+NoNewPrivileges=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+SystemCallArchitectures=native
+ProtectHome=yes
+CapabilityBoundingSet=
+LimitNOFILE=2048
+
+[Install]
+WantedBy=multi-user.target

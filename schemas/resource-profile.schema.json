@@ -1,0 +1,23 @@
+{
+  "$id": "https://arches.example/schemas/resource-profile.schema.json",
+  "title": "Resource profile: sampling, retention, budgets by platform class (REQ §5.1)",
+  "type": "object",
+  "required": ["platform_class"],
+  "properties": {
+    "platform_class": {"type": "string", "enum": ["small","medium","large"]},
+    "sample_interval_default_s": {"type": "number", "minimum": 0.5},
+    "sample_intervals_per_class_s": {
+      "type": "object",
+      "additionalProperties": {"type": "number", "minimum": 0.5}
+    },
+    "highres_window_s": {"type": "number", "minimum": 10},
+    "highres_interval_s": {"type": "number", "minimum": 0.5},
+    "telemetry_interval_s": {"type": "number", "minimum": 1},
+    "telemetry_batch_max_records": {"type": "integer", "minimum": 1},
+    "spool_max_bytes": {"type": "integer", "minimum": 1048576},
+    "logs_max_bytes": {"type": "integer", "minimum": 1048576},
+    "ota_staging_bytes": {"type": "integer", "minimum": 1048576},
+    "backup_max_bytes": {"type": "integer", "minimum": 1048576},
+    "timeline_max_events": {"type": "integer", "minimum": 100}
+  }
+}

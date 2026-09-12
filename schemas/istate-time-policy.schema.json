@@ -1,0 +1,12 @@
+{
+  "$id": "https://arches.example/schemas/istate-time-policy.schema.json",
+  "title": "Time policy (REQ §7.1: istate owns policy, networkd applies)",
+  "type": "object",
+  "properties": {
+    "source_priority": {"type": "array", "items": {"type": "string", "enum": ["gnss","ptp","ntp"]}},
+    "ntp_servers": {"type": "array", "items": {"type": "string"}},
+    "ptp_domain": {"type": "integer", "minimum": 0, "maximum": 127},
+    "ptp_profile": {"type": "string"},
+    "gnss_constellations": {"type": "array", "items": {"type": "string"}}
+  }
+}

@@ -1,0 +1,30 @@
+board: imx8m-plus
+devices:
+  - name: status-led
+    kind: led
+    controls: [led_set, led_blink]
+    checks:
+      - name: blink-ack
+        op: led_blink_ack
+  - name: gpio-user
+    kind: gpio
+    params:
+      line: 5
+    controls: [gpio_set]
+    checks:
+      - name: toggle
+        op: gpio_toggle_read
+  - name: can1
+    kind: can
+    controls: [can_send, can_recv]
+    params:
+      iface: can1
+    checks:
+      - name: loopback
+        op: can_loopback
+  - name: display
+    kind: display
+    controls: [display_control]
+    checks:
+      - name: probe
+        op: display_probe

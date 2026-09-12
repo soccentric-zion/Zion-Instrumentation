@@ -1,0 +1,58 @@
+// ota — thin manager on top of SWUpdate (REQ §7.9). Artifacts land on disk
+// before apply; interface shaped so true streaming can be added later
+// without breaking callers.
+syntax = "proto3";
+package instr.ota;
+import "common.proto";
+
+message OtaEvent {
+  common.TimeStamp ts = 1;
+  string stage        = 2;  // downloading / verifying / staging / applied /
+                            // booted_new / confirmed / rolled_back / failed
+  double progress     = 3;  // 0..1
+  string message      = 4;
+  string from_version = 5;
+  string to_version   = 6;
+}
+
+message OtaStatus {
+  string state           = 1;  // idle / download / staged / applied_pending_confirm / confirmed / failed
+  string current_slot    = 2;
+  string running_version = 3;
+  string staged_version  = 4;
+  bool   update_in_progress = 5;
+  repeated HistoryEntry history = 6;
+
+  message HistoryEntry {
+    string from_version = 1;
+    string to_version   = 2;
+    string result       = 3;  // confirmed / rolled_back / failed
+    int64  finished_unix_s = 4;
+  }
+}
+
+message OtaSpokeFrame {
+  oneof body {
+    OtaEvent event              = 1;
+    common.Ack ack              = 2;
+    common.LivenessPong pong    = 3;
+    string status_json          = 4;  // OtaStatus as JSON
+    common.ConfigRequest config_request = 5;
+    common.ConfigAck config_ack = 6;
+  }
+}
+
+message OtaHubFrame {
+  oneof body {
+    common.Command command      = 1;  // apply-artifact, confirm, rollback, window...
+    common.Backpressure backpressure = 2;
+    common.RelayedData relay    = 3;
+    common.TimeStamp time_sync  = 4;
+    common.ConfigDelivery config = 5;
+  }
+}
+
+service OtaHub {
+  rpc Register(common.RegistrationRequest) returns (common.RegistrationReply);
+  rpc Channel(stream OtaSpokeFrame) returns (stream OtaHubFrame);
+}

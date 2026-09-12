@@ -1,0 +1,58 @@
+// telemetry — aggregation, batch shaping, health score, reproducibility
+// metadata (REQ §7.8).
+syntax = "proto3";
+package instr.telemetry;
+import "common.proto";
+
+message HealthScore {
+  double score               = 1;  // 0..100, fleet-sortable
+  map<string, double> factors = 2;  // contributing factors exposed
+}
+
+message TelemetryRecord {
+  string metric        = 1;
+  double value         = 2;
+  string unit          = 3;
+  string agg_fn        = 4;  // min / max / mean / count / last
+  uint64 window_start_mono_ns = 5;
+  uint64 window_end_mono_ns   = 6;
+  map<string, string> tags = 7;
+  common.TimeStamp ts  = 8;
+  uint32 count         = 9;
+}
+
+message TelemetryBatch {
+  common.TimeStamp ts      = 1;
+  repeated TelemetryRecord records = 2;
+  HealthScore health       = 3;
+  string firmware_version  = 4;  // reproducibility metadata (REQ §7.8)
+  string config_schema_version = 5;
+  string hardware_revision = 6;
+  string device_serial     = 7;
+}
+
+message TelemetrySpokeFrame {
+  oneof body {
+    TelemetryBatch batch        = 1;
+    common.Ack ack              = 2;
+    common.LivenessPong pong    = 3;
+    string status_json          = 4;
+    common.ConfigRequest config_request = 5;
+    common.ConfigAck config_ack = 6;
+  }
+}
+
+message TelemetryHubFrame {
+  oneof body {
+    common.Command command      = 1;
+    common.Backpressure backpressure = 2;
+    common.RelayedData relay    = 3;  // monitord samples, hardware results, fault rates
+    common.TimeStamp time_sync  = 4;
+    common.ConfigDelivery config = 5;
+  }
+}
+
+service TelemetryHub {
+  rpc Register(common.RegistrationRequest) returns (common.RegistrationReply);
+  rpc Channel(stream TelemetrySpokeFrame) returns (stream TelemetryHubFrame);
+}

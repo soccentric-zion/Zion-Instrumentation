@@ -1,0 +1,6 @@
+# lib/transport — gRPC over UDS plumbing shared by all ten daemons (R3)
+add_library(instr_transport STATIC src/transport.cpp)
+target_include_directories(instr_transport PUBLIC include)
+target_link_libraries(instr_transport PUBLIC instr_common instr_protos)
+target_compile_features(instr_transport PUBLIC cxx_std_17)
+target_compile_options(instr_transport PRIVATE -Wall -Wextra)

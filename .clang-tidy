@@ -1,0 +1,30 @@
+# Static analysis for Arches Instrumentation (REQ §14).
+#
+# Scoped deliberately: checks that catch real defects in this codebase —
+# lifetime and correctness bugs, misuse of the standard library, and the
+# readability rules the code already follows. Style-only opinions and checks
+# that fight the embedded C++17 idiom here are off, so a finding means
+# something rather than being noise to scroll past.
+Checks: >
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  cert-*,
+  -cert-err58-cpp,
+  clang-analyzer-*,
+  concurrency-*,
+  misc-*,
+  -misc-non-private-member-variables-in-classes,
+  -misc-include-cleaner,
+  -misc-no-recursion,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-emplace,
+  performance-*,
+  -performance-avoid-endl,
+  readability-braces-around-statements,
+  -readability-magic-numbers
+
+WarningsAsErrors: 'bugprone-use-after-move,bugprone-dangling-handle,clang-analyzer-core.*,concurrency-mt-unsafe'
+HeaderFilterRegex: '(lib|daemons)/.*\.h$'
+FormatStyle: none

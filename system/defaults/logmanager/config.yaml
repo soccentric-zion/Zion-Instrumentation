@@ -1,0 +1,18 @@
+# logmanager configuration (defaults): which logs to collect and send
+enabled: true
+budget_bytes: 134217728
+sources:
+  - name: journal-system
+    kind: journal
+    level: INFO
+    rotate_size_bytes: 8388608
+    retention_files: 5
+  # Application log sink (§7.7): colocated applications append lines here and
+  # logmanager collects them alongside the journal. Kind "app" is a file sink
+  # whose path is owned by the application rather than by systemd.
+  - name: app
+    kind: app
+    path: /var/log/instrumentation/app.log
+    level: INFO
+    rotate_size_bytes: 8388608
+    retention_files: 5

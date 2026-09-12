@@ -1,0 +1,244 @@
+// istate — the hub. Sole external face (R2): serves spokes and Configuration
+// over UDS, and acts as gRPC client of HQ over the WireGuard tunnel.
+syntax = "proto3";
+package instr.istate;
+import "common.proto";
+import "telemetry.proto";
+import "faults.proto";
+import "logmanager.proto";
+
+// ---- Configuration-facing API (served on configuration.sock) ---------------
+message SystemInfoRequest {}
+message SystemInfo {
+  string hostname        = 1;
+  string serial          = 2;
+  string hw_revision     = 3;
+  string board_variant   = 4;
+  string firmware_version = 5;
+  string suite_version   = 6;
+  string config_schema_version = 7;
+  string istate_state    = 8;   // provisioning / operational / degraded
+  string provisioning_state = 9;
+  repeated string capabilities = 10;  // capability manifest (honest reporting)
+  string boot_id         = 11;
+  uint32 boot_count      = 12;
+  bool   clean_shutdown  = 13;  // clean-shutdown marker from previous boot
+}
+
+message GetConfigRequest { string daemon = 1; }
+message ConfigSnapshot {
+  string daemon = 1;
+  string yaml   = 2;
+  map<string, string> origins = 3;  // dot-path → origin name
+  string schema_version = 4;
+}
+
+message SetConfigRequest {
+  string daemon = 1;
+  string yaml   = 2;
+  common.Origin origin = 3;
+  bool   force  = 4;    // allow overwriting origin=local keys
+  string actor  = 5;
+}
+message SetConfigReply { bool ok = 1; string error = 2; repeated string rejected_paths = 3; }
+
+message ListSpokesRequest {}
+message SpokeStatus {
+  string name          = 1;
+  string state         = 2;  // expected / starting / ready / degraded / stopped / hung
+  bool   live          = 3;  // liveness probe result
+  string build_version = 4;
+  uint32 proto_version = 5;
+  repeated string capabilities = 6;
+}
+message SpokeStatusList { repeated SpokeStatus spokes = 1; }
+
+message SpokeControlRequest {
+  string daemon = 1;
+  string action = 2;  // start / stop / restart
+  string reason = 3;
+}
+
+message ResetRequest {
+  bool   factory      = 1;  // manufacturing operation only, explicitly gated
+  string confirmation = 2;  // must equal "FACTORY-RESET" for factory
+  string actor        = 3;
+}
+
+message EventFilter {
+  repeated string kinds = 1;  // boot / config_change / alarm / fault / update / restart / audit
+  uint64 since_seq = 2;
+}
+
+message TimelineEvent {
+  common.TimeStamp ts = 1;
+  uint64 seq          = 2;
+  string kind         = 3;
+  string actor        = 4;
+  string detail_json  = 5;
+}
+
+message TailSpec {
+  repeated string sources = 1;
+  string min_level    = 2;
+  uint64 since_mono_ns = 3;
+  uint32 max_rate_per_s = 4;
+  uint32 timeout_s     = 5;
+}
+
+message HealthScoreRequest {}
+message HealthScoreReply {
+  double score = 1;
+  map<string, double> factors = 2;
+}
+
+message EnrollmentRequest {}
+message EnrollmentStatus {
+  string state      = 1;  // virgin / seeding / keygen / enrolling / operational
+  string hostname   = 2;
+  string pubkey_b64 = 3;
+  bool   tunnel_up  = 4;
+  string hq_endpoint = 5;
+}
+
+message RotateKeyRequest { string actor = 1; }
+
+message RelayRequest {
+  string daemon = 1;          // target spoke
+  common.Command command = 2; // full-coverage pass-through
+}
+
+message BudgetStatus {
+  string consumer = 1;   // spool / logs / ota / backup
+  uint64 limit_bytes = 2;
+  uint64 used_bytes  = 3;
+  bool   warning     = 4; // alarm raised before the limit
+}
+
+message BudgetsRequest {}
+message BudgetsReply { repeated BudgetStatus budgets = 1; }
+
+// Configuration is a gRPC-over-UDS client of istate, architecturally
+// identical to a spoke (REQ §3.3). It holds no device state.
+service ConfigurationApi {
+  rpc GetSystemInfo(SystemInfoRequest) returns (SystemInfo);
+  rpc GetConfig(GetConfigRequest) returns (ConfigSnapshot);
+  rpc SetConfig(SetConfigRequest) returns (SetConfigReply);
+  rpc ListSpokes(ListSpokesRequest) returns (SpokeStatusList);
+  rpc SpokeControl(SpokeControlRequest) returns (common.Ack);
+  rpc Reset(ResetRequest) returns (common.Ack);
+  rpc StreamEvents(EventFilter) returns (stream TimelineEvent);
+  rpc StreamLogs(TailSpec) returns (stream logmanager.TailLine);
+  rpc GetHealthScore(HealthScoreRequest) returns (HealthScoreReply);
+  rpc GetEnrollmentStatus(EnrollmentRequest) returns (EnrollmentStatus);
+  rpc RotateKey(RotateKeyRequest) returns (common.Ack);
+  rpc RelayCommand(RelayRequest) returns (common.Ack);
+  rpc Budgets(BudgetsRequest) returns (BudgetsReply);
+}
+
+// ---- Application-facing API (REQ R5, §7.6, §7.8, §6.2) ---------------------
+//
+// Colocated applications are the ONLY entities permitted to raise or clear an
+// alarm (R5), Telemetry owes them a metric registration API (§7.8), and after
+// provisioning they "may then override values as they see fit, with origin
+// recorded" (§6.2). None of that is reachable over a _ctrl socket, which §3.2
+// fixes at 0600 root-only.
+//
+// So applications get their own face on istate, architecturally identical to
+// the Configuration peer of §3.3: gRPC over UDS at
+// /run/instrumentation/application.sock, mode 0660, instr-istate:instr-apps.
+// R1/R2/R4 hold — an application never dials a spoke, and every write to /pst
+// is still istate's.
+
+message RaiseAlarmRequest {
+  uint32 alarm_id       = 1;
+  string owner          = 2;  // declaring application; required (R5)
+  string additional_text = 3;
+  repeated uint32 correlated = 4;  // X.733 correlated notifications
+}
+
+message ClearAlarmRequest {
+  uint32 alarm_id = 1;
+  string owner    = 2;
+}
+
+message AlarmAck {
+  bool   accepted       = 1;
+  string action         = 2;  // raise / reraise / severity-change / clear
+  bool   needs_snapshot = 3;  // CRITICAL fired → bounded diagnostic capture
+  string error          = 4;
+}
+
+message RegisterMetricRequest {
+  string name = 1;
+  string unit = 2;
+  string type = 3;  // gauge / counter
+  string app  = 4;  // owning application
+}
+
+message MetricSample {
+  string name    = 1;
+  double value   = 2;
+  string app     = 3;
+  common.TimeStamp stamp = 4;
+}
+
+message ReportMetricsRequest { repeated MetricSample samples = 1; }
+message ReportMetricsReply {
+  uint32 accepted = 1;
+  uint32 rejected = 2;
+  string error    = 3;
+}
+
+// Config writes from an application always land with origin "app" — the
+// caller does not get to choose, or the origin field would be worthless for
+// deciding what a reset or an HQ push may overwrite (§4, §9).
+message SetAppConfigRequest {
+  string daemon = 1;
+  string key    = 2;
+  string value  = 3;
+  string app    = 4;  // attributed in the audit trail (§10)
+}
+
+service ApplicationApi {
+  rpc GetSystemInfo(SystemInfoRequest) returns (SystemInfo);
+  rpc GetConfig(GetConfigRequest) returns (ConfigSnapshot);
+  rpc SetAppConfig(SetAppConfigRequest) returns (SetConfigReply);
+  rpc RaiseAlarm(RaiseAlarmRequest) returns (AlarmAck);
+  rpc ClearAlarm(ClearAlarmRequest) returns (AlarmAck);
+  rpc RegisterMetric(RegisterMetricRequest) returns (common.Ack);
+  rpc ReportMetrics(ReportMetricsRequest) returns (ReportMetricsReply);
+}
+
+// ---- HQ-facing session (HQ implements this; istate dials over the tunnel) --
+message EventsFrame { repeated TimelineEvent events = 1; }
+message FaultsFrame { repeated faults.FaultEvent faults = 1; }
+
+message DeviceFrame {
+  oneof body {
+    common.RegistrationRequest registration = 1;
+    common.EnrollRequest enroll             = 2;
+    telemetry.TelemetryBatch telemetry      = 3;
+    EventsFrame events                         = 4;
+    FaultsFrame faults                         = 5;
+    logmanager.BundleHandle log_ref         = 6;
+    string canary_json                      = 7;  // fault rate, health score, version
+    common.LivenessPong pong                = 8;
+  }
+}
+
+message HqFrame {
+  oneof body {
+    common.Ack ack                    = 1;
+    common.Backpressure backpressure  = 2;
+    common.SignedConfig config_push   = 3;
+    common.Command ota_command        = 4;  // apply-artifact / confirm / rollback
+    common.Command command            = 5;  // generic relay to a spoke
+    common.EnrollReply enroll_reply   = 6;
+    common.WgTunnel tunnel_config     = 7;
+  }
+}
+
+service HqPeer {
+  rpc Session(stream DeviceFrame) returns (stream HqFrame);
+}

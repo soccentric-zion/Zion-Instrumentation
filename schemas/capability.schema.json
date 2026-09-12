@@ -1,0 +1,10 @@
+{
+  "$id": "https://arches.example/schemas/capability.schema.json",
+  "title": "Capability manifest (REQ §5.1): honest reporting of what exists",
+  "type": "object",
+  "required": ["board", "capabilities"],
+  "properties": {
+    "board": {"type": "string"},
+    "capabilities": {"type": "array", "items": {"type": "string"}}
+  }
+}

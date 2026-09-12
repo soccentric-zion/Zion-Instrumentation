@@ -1,0 +1,9 @@
+# backup configuration (defaults): the paths to capture (REQ §7.10)
+enabled: true
+paths:
+  - /pst/system
+excludes:
+  - factory/
+  - wg-private.key
+schedule_enabled: true
+schedule_interval_s: 86400

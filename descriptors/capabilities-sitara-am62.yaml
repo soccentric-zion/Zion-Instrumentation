@@ -1,0 +1,2 @@
+board: sitara-am62
+capabilities: [can, watchdog]

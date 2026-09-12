@@ -1,0 +1,27 @@
+{
+  "$id": "https://arches.example/schemas/devices.schema.json",
+  "title": "Board device descriptor (REQ §5.1)",
+  "type": "object",
+  "required": ["board", "devices"],
+  "properties": {
+    "board": {"type": "string"},
+    "devices": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "required": ["name", "kind"],
+        "properties": {
+          "name": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+          "kind": {"type": "string", "enum": ["gpio","led","can","usb","display","sensor","watchdog"]},
+          "controls": {"type": "array", "items": {"type": "string"}},
+          "checks": {"type": "array", "items": {
+            "type": "object", "required": ["name","op"],
+            "properties": {"name": {"type":"string"}, "op": {"type":"string"},
+                           "params": {"type":"object"}}}},
+          "params": {"type": "object"}
+        }
+      }
+    }
+  }
+}

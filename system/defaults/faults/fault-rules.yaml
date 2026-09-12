@@ -1,0 +1,91 @@
+# Fault rules seeded into /pst/system/faults/fault-rules.yaml (REQ §6, §7.5).
+# Rule sets are data: HQ ships a new signature as configuration, not as a
+# release, by writing this file through istate.
+# Arches Instrumentation — default fault rule set (REQ §7.5).
+# Rule sets are data: a new signature ships as configuration, not a release.
+# Each rule: symbolic name, regex signature, X.733 classification, severity,
+# fault id (fault domain, same 32-bit scheme as alarms), dedup key template
+# and window, rate limit.
+version: 1
+rules:
+  - name: bus_error
+    pattern: "(?:PCIe|pcieport).*(?:Bus Error|AER:).*|machine check.*bus"
+    fault_id: 0x5_05_1_0001
+    severity: MAJOR
+    x733_type: equipment
+    probable_cause: bus-error
+    dedup_key: "bus:$device"
+    dedup_window_s: 60
+    rate_limit_per_s: 5
+  - name: ecc_event
+    # EDAC reports "1 CE memory read error" / "UE memory ..." far more often
+    # than the literal "ECC"; mce logs machine checks without the word.
+    pattern: "EDAC.*(?:ECC|CE memory|UE memory|corrected error)|mce.*(?:Hardware Error|Machine check)|Memory (?:un)?corrected error|MC[0-9]+:.*memory.*error"
+    fault_id: 0x5_05_1_0002
+    severity: MAJOR
+    x733_type: equipment
+    probable_cause: memory-error
+    dedup_key: "ecc:$device"
+    dedup_window_s: 60
+    rate_limit_per_s: 5
+  - name: link_reset
+    pattern: "(?:eth|enp|end0).*Link (?:is )?[Dd]own.*[Uu]p|driver.*reset.*(link|phy)"
+    fault_id: 0x5_05_2_0003
+    severity: MINOR
+    x733_type: communications
+    probable_cause: link-reset
+    dedup_key: "link:$device"
+    dedup_window_s: 30
+    rate_limit_per_s: 10
+  - name: thermal_throttle
+    # Covers both spellings a device actually emits: the thermal core's
+    # "critical temperature reached" and the CPU's "temperature above
+    # threshold, cpu clock throttled".
+    pattern: "thermal.*(?:throttl|critical temperature)|temperature above threshold|clock throttled|hwmon.*temp.*critical|thermal_zone[0-9]+.*critical"
+    fault_id: 0x5_05_5_0004
+    severity: WARNING
+    x733_type: environmental
+    probable_cause: thermal-throttling
+    dedup_key: "thermal:$zone"
+    dedup_window_s: 120
+    rate_limit_per_s: 5
+  - name: storage_error
+    pattern: "(?:I/O error|blk_update_request|mmc.*error|EXT4-fs error|BTRFS error)"
+    fault_id: 0x5_05_1_0005
+    severity: MAJOR
+    x733_type: equipment
+    probable_cause: storage-media-error
+    dedup_key: "storage:$device"
+    dedup_window_s: 60
+    rate_limit_per_s: 10
+  - name: device_timeout
+    # -110 is ETIMEDOUT and is how most drivers report a timeout; USB and
+    # xHCI announce a dead controller rather than using the word "timeout".
+    pattern: "timeout.*(?:device|sd|mmc)|timed out.*(?:command|transfer)|error -110|not responding, assume dead|device descriptor read.*error"
+    fault_id: 0x5_05_1_0006
+    severity: MINOR
+    x733_type: equipment
+    probable_cause: device-timeout
+    dedup_key: "timeout:$device"
+    dedup_window_s: 60
+    rate_limit_per_s: 10
+  - name: watchdog_trip
+    # A soft/hard lockup is the watchdog doing its job and must not be
+    # missed just because the message does not say "trip".
+    pattern: "watchdog.*(?:trip|bite|expire|timeout)|WDT.*reset|soft lockup|hard LOCKUP|BUG: soft lockup"
+    fault_id: 0x5_05_3_0007
+    severity: CRITICAL
+    x733_type: processing-error
+    probable_cause: watchdog
+    dedup_key: "wdt:$device"
+    dedup_window_s: 300
+    rate_limit_per_s: 2
+  - name: oom_kill
+    pattern: "Out of memory: Killed process|oom-kill:|oom_reaper"
+    fault_id: 0x5_05_3_0008
+    severity: MAJOR
+    x733_type: processing-error
+    probable_cause: memory-exhaustion
+    dedup_key: "oom:$process"
+    dedup_window_s: 120
+    rate_limit_per_s: 5

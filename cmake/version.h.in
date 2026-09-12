@@ -1,0 +1,5 @@
+// Generated from VERSION — one version for the whole suite (REQ §14).
+#ifndef INSTR_VERSION_GEN_H
+#define INSTR_VERSION_GEN_H
+#define INSTR_VERSION "@INSTR_VERSION@"
+#endif

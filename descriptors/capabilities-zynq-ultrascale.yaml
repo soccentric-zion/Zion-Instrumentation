@@ -1,0 +1,2 @@
+board: zynq-ultrascale
+capabilities: [can, watchdog, gnss]

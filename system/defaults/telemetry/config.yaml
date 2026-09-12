@@ -1,0 +1,5 @@
+# telemetry configuration (defaults): what to collect (REQ §7.8)
+enabled: true
+interval: 30
+batch_max_records: 200
+health_inputs: [monitord, hardware, faults, alarms]

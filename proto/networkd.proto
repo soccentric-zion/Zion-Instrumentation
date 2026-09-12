@@ -1,0 +1,77 @@
+// networkd — owns everything network-adjacent (REQ §7.2, R8).
+syntax = "proto3";
+package instr.networkd;
+import "common.proto";
+
+message InterfaceInfo {
+  string name        = 1;
+  bool   up          = 2;
+  bool   link        = 3;
+  string mac         = 4;
+  repeated string addrs = 5;
+  uint32 priority    = 6;   // failover ranking
+  string mode        = 7;   // dhcp / static / vlan / bond / ap / unused
+}
+
+message ConnectivityState {
+  string iface       = 1;
+  bool   reachable   = 2;
+  string probe_target = 3;
+  uint64 rtt_ms      = 4;
+}
+
+message TunnelState {
+  bool   up          = 1;
+  string endpoint    = 2;
+  string last_handshake_age_s = 3;
+  string state       = 4;  // down / bringing_up / up / guard_revert
+}
+
+message TimeState {
+  string source      = 1;  // gnss / ptp / ntp / unsynced
+  double offset_ms   = 2;
+  double lock_quality = 3; // 0..1
+  bool   locked      = 4;
+}
+
+message RemoteAccessSession {
+  string operator_name = 1;
+  int64  opened_unix_s = 2;
+  int64  expires_unix_s = 3;
+  string issued_by     = 4;
+  bool   active        = 5;
+}
+
+message NetworkEvent {
+  common.TimeStamp ts = 1;
+  string kind         = 2;  // iface_up, iface_down, tunnel_up, tunnel_down,
+                            // ssh_opened, ssh_expired, guard_revert, time_lock
+  string iface        = 3;
+  string detail_json  = 4;
+}
+
+message NetworkSpokeFrame {
+  oneof body {
+    NetworkEvent event           = 1;
+    common.Ack ack               = 2;
+    common.LivenessPong pong     = 3;
+    string status_json           = 4;
+    common.ConfigRequest config_request = 5;
+    common.ConfigAck config_ack = 6;
+  }
+}
+
+message NetworkHubFrame {
+  oneof body {
+    common.Command command       = 1;  // apply-plan, firewall, ssh, time policy...
+    common.Backpressure backpressure = 2;
+    common.RelayedData relay     = 3;
+    common.TimeStamp time_sync   = 4;
+    common.ConfigDelivery config = 5;
+  }
+}
+
+service NetworkHub {
+  rpc Register(common.RegistrationRequest) returns (common.RegistrationReply);
+  rpc Channel(stream NetworkSpokeFrame) returns (stream NetworkHubFrame);
+}

@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arches.soccentric.com/schemas/logmanager.schema.json",
+  "title": "logmanager configuration (REQ \u00a77.7)",
+  "description": "Validated at load; a typo is a loud rejection, never a silent behavioural change (REQ \u00a79).",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Daemon enabled."
+    },
+    "log_level": {
+      "type": "string",
+      "enum": [
+        "TRACE",
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR",
+        "CRITICAL"
+      ],
+      "description": "Runtime log level for this daemon (\u00a74)."
+    },
+    "budget_bytes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Storage budget for this resource class (\u00a77.7)."
+    },
+    "prune_interval_s": {
+      "type": "number",
+      "minimum": 1
+    },
+    "tail_max_rate_per_s": {
+      "type": "number",
+      "minimum": 0
+    },
+    "coredump_max_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "journal",
+              "file",
+              "app"
+            ]
+          },
+          "path": {
+            "type": "string"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "TRACE",
+              "DEBUG",
+              "INFO",
+              "WARNING",
+              "ERROR",
+              "CRITICAL"
+            ]
+          },
+          "rotate_size_bytes": {
+            "type": "integer",
+            "minimum": 1024
+          },
+          "retention_files": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "retention_age_s": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "compress": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "kind"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "enabled"
+  ],
+  "additionalProperties": false
+}

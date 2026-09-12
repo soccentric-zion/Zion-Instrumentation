@@ -1,0 +1,48 @@
+// backup — snapshot /pst/system, archive, encrypt, send northbound via
+// istate; restore is transactional (REQ §7.10). All /pst writes happen under
+// istate's direction (R4).
+syntax = "proto3";
+package instr.backup;
+import "common.proto";
+
+message BackupEvent {
+  common.TimeStamp ts = 1;
+  string action       = 2;  // create / verify / restore_preview / restore_commit /
+                            // restore_complete / restore_failed / schedule_change
+  string archive      = 3;
+  string meta_json    = 4;
+  bool   ok           = 5;
+  string error        = 6;
+}
+
+message RestorePreviewEntry {
+  string path      = 1;
+  string action    = 2;  // add / replace / delete / unchanged
+  string detail    = 3;
+}
+
+message BackupSpokeFrame {
+  oneof body {
+    BackupEvent event           = 1;
+    common.Ack ack              = 2;
+    common.LivenessPong pong    = 3;
+    string status_json          = 4;
+    common.ConfigRequest config_request = 5;
+    common.ConfigAck config_ack = 6;
+  }
+}
+
+message BackupHubFrame {
+  oneof body {
+    common.Command command      = 1;
+    common.Backpressure backpressure = 2;
+    common.RelayedData relay    = 3;
+    common.TimeStamp time_sync  = 4;
+    common.ConfigDelivery config = 5;
+  }
+}
+
+service BackupHub {
+  rpc Register(common.RegistrationRequest) returns (common.RegistrationReply);
+  rpc Channel(stream BackupSpokeFrame) returns (stream BackupHubFrame);
+}

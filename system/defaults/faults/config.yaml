@@ -1,0 +1,3 @@
+# faults configuration (defaults; rules are data)
+enabled: true
+backfill_boot_log: true

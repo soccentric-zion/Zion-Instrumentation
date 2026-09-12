@@ -1,0 +1,3 @@
+# hardware configuration (defaults)
+enabled: true
+periodic_check_interval_s: 300

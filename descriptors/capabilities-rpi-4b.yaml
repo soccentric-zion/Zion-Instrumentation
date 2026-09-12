@@ -1,0 +1,2 @@
+board: rpi-4b
+capabilities: [watchdog, display]

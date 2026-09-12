@@ -1,0 +1,12 @@
+# The manifest embedded in a backup archive (REQ §7.10). Restore refuses an
+# incompatible archive by comparing these against the running device.
+hardware_revision: rev-c
+schema_version: "1"
+firmware_version: 1.0.0
+device_serial: ARC-ORIN-0001A7F3
+created_unix_s: 1771070000
+paths:
+  - /pst/system
+excludes:
+  - factory/
+  - wg-private.key

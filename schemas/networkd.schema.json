@@ -1,0 +1,246 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arches.soccentric.com/schemas/networkd.schema.json",
+  "title": "networkd configuration (REQ \u00a77.2)",
+  "description": "Validated at load; a typo is a loud rejection, never a silent behavioural change (REQ \u00a79).",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Daemon enabled."
+    },
+    "log_level": {
+      "type": "string",
+      "enum": [
+        "TRACE",
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR",
+        "CRITICAL"
+      ],
+      "description": "Runtime log level for this daemon (\u00a74)."
+    },
+    "tunnel_guard_timeout_s": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Auto-revert a change that kills the tunnel after this long (\u00a77.2, mandatory)."
+    },
+    "remote_ssh_default_enabled": {
+      "type": "boolean",
+      "description": "Inbound SSH; off by default (\u00a77.2, \u00a710)."
+    },
+    "remote_ssh_max_ttl_s": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Upper bound on a time-boxed remote access window."
+    },
+    "connectivity_probe_interval_s": {
+      "type": "number",
+      "minimum": 0.1
+    },
+    "ssh_sweep_interval_s": {
+      "type": "number",
+      "minimum": 0.1
+    },
+    "interfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "dhcp",
+              "static",
+              "vlan",
+              "bond",
+              "unused"
+            ]
+          },
+          "address": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 128
+          },
+          "vlan_id": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4094
+          },
+          "bond_member": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "name",
+          "mode"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "wireless": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "client",
+            "ap",
+            "off"
+          ]
+        },
+        "interface": {
+          "type": "string"
+        },
+        "ssid": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "ap_channel": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 196
+        }
+      },
+      "additionalProperties": false
+    },
+    "dns": {
+      "type": "object",
+      "properties": {
+        "servers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "search": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "routes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string"
+          },
+          "gateway": {
+            "type": "string"
+          },
+          "iface": {
+            "type": "string"
+          },
+          "metric": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "destination"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "firewall": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "allow",
+              "deny"
+            ]
+          },
+          "proto": {
+            "type": "string",
+            "enum": [
+              "tcp",
+              "udp",
+              "icmp",
+              "any"
+            ]
+          },
+          "src": {
+            "type": "string"
+          },
+          "dst_port": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "comment": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "action",
+          "proto"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "port_forwards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "proto": {
+            "type": "string",
+            "enum": [
+              "tcp",
+              "udp"
+            ]
+          },
+          "listen_port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "dest_ip": {
+            "type": "string"
+          },
+          "dest_port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          }
+        },
+        "required": [
+          "proto",
+          "listen_port",
+          "dest_ip",
+          "dest_port"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "enabled"
+  ],
+  "additionalProperties": false
+}

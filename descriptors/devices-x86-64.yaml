@@ -1,0 +1,16 @@
+board: x86-64
+devices:
+  - name: status-led
+    kind: led
+    controls: [led_set, led_blink]
+    checks:
+      - name: blink-ack
+        op: led_blink_ack
+  - name: usb-cam
+    kind: usb
+    params:
+      port: 1-4
+    controls: [usb_reset]
+    checks:
+      - name: reset-ack
+        op: usb_reset_ack

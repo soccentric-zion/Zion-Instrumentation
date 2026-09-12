@@ -1,0 +1,18 @@
+platform_class: large
+sample_interval_default_s: 2
+sample_intervals_per_class_s:
+  thermal: 1
+  cpu: 5
+  memory: 5
+  storage: 30
+  load: 5
+  system: 30
+highres_window_s: 300
+highres_interval_s: 1
+telemetry_interval_s: 15
+telemetry_batch_max_records: 500
+spool_max_bytes: 134217728
+logs_max_bytes: 268435456
+ota_staging_bytes: 1073741824
+backup_max_bytes: 536870912
+timeline_max_events: 10000

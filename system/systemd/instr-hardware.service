@@ -1,0 +1,31 @@
+[Unit]
+Description=Arches Instrumentation hardware
+Documentation=file:///usr/share/doc/instrumentation/interface.md
+After=instr-istate.service
+Wants=instr-istate.service
+# istate owns orchestration; systemd owns restart policy and sandboxing (§7.1).
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/instr-hardware
+Restart=on-failure
+RestartSec=2s
+# Device access only (§10).
+ReadWritePaths=/run/instrumentation
+User=instr-hardware
+Group=instr
+ProtectSystem=strict
+PrivateTmp=yes
+NoNewPrivileges=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+SystemCallArchitectures=native
+ProtectHome=yes
+SupplementaryGroups=gpio input dialout
+LimitNOFILE=2048
+
+[Install]
+WantedBy=multi-user.target

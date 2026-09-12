@@ -1,0 +1,61 @@
+// alarms — classic telecom-style alarm manager (REQ §7.6).
+// Only applications set and clear alarms (R5). State changes go to istate
+// directly as events, never through telemetry batching.
+syntax = "proto3";
+package instr.alarms;
+import "common.proto";
+
+message AlarmEvent {
+  common.TimeStamp ts  = 1;
+  uint32 alarm_id      = 2;   // 32-bit layout, decodable without catalog
+  string action        = 3;   // raise / clear / ack / severity_change / snapshot_request
+  common.Severity severity = 4;
+  string owner         = 5;   // application that declared the alarm
+  string additional_text = 6;
+  string specific_problem = 7;
+  string probable_cause   = 8;
+  common.TimeStamp first_seen = 9;
+  common.TimeStamp last_seen  = 10;
+  uint32 count       = 11;
+  bool   acknowledged = 12;
+  repeated uint32 correlated = 13;  // X.733 correlated notifications
+  bool   needs_snapshot = 14;      // CRITICAL fired → bounded diagnostic capture
+}
+
+message ActiveAlarm {
+  uint32 alarm_id      = 1;
+  string symbolic_name = 2;
+  common.Severity severity = 3;
+  string owner         = 4;
+  string additional_text = 5;
+  common.TimeStamp first_seen = 6;
+  common.TimeStamp last_seen  = 7;
+  uint32 count         = 8;
+  bool   acknowledged  = 9;
+}
+
+message AlarmSpokeFrame {
+  oneof body {
+    AlarmEvent event            = 1;
+    common.Ack ack              = 2;
+    common.LivenessPong pong    = 3;
+    string status_json          = 4;  // active table / stats as JSON
+    common.ConfigRequest config_request = 5;
+    common.ConfigAck config_ack = 6;
+  }
+}
+
+message AlarmHubFrame {
+  oneof body {
+    common.Command command      = 1;  // list, ack, clear (operator), merge-catalog...
+    common.Backpressure backpressure = 2;
+    common.RelayedData relay    = 3;
+    common.TimeStamp time_sync  = 4;
+    common.ConfigDelivery config = 5;
+  }
+}
+
+service AlarmHub {
+  rpc Register(common.RegistrationRequest) returns (common.RegistrationReply);
+  rpc Channel(stream AlarmSpokeFrame) returns (stream AlarmHubFrame);
+}

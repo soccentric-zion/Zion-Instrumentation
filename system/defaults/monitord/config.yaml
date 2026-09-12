@@ -1,0 +1,7 @@
+# monitord configuration (defaults)
+enabled: true
+interval: 5
+thermal_warn_c: 75.0
+thermal_critical_c: 85.0
+storage_warn_pct: 90.0
+wear_projection_threshold_days: 180

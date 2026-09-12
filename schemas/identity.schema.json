@@ -1,0 +1,13 @@
+{
+  "$id": "https://arches.example/schemas/identity.schema.json",
+  "title": "Factory identity (REQ §6: /pst/factory/identity/identity.yaml)",
+  "type": "object",
+  "required": ["serial","hw_revision","board_variant","mfg_date","hostname_base"],
+  "properties": {
+    "serial": {"type": "string"},
+    "hw_revision": {"type": "string"},
+    "board_variant": {"type": "string"},
+    "mfg_date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "hostname_base": {"type": "string"}
+  }
+}

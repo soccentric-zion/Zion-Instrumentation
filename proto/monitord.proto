@@ -1,0 +1,55 @@
+// monitord — system resource monitoring (observation only; raises no alarms).
+syntax = "proto3";
+package instr.monitord;
+import "common.proto";
+
+message Sample {
+  common.TimeStamp ts   = 1;
+  string metric         = 2;   // e.g. cpu.util, mem.used_pct, thermal.zone0
+  double value          = 3;
+  string unit           = 4;
+  map<string, string> tags = 5;
+  string resource_class = 6;   // cpu / memory / storage / thermal / load / system
+}
+
+message WearProjection {
+  string device        = 1;
+  double wear_pct      = 2;
+  uint32 remaining_days = 3;   // projected remaining life
+  string model         = 4;    // projection model name
+}
+
+message MonitorStatus {
+  double interval_default_s = 1;
+  map<string, double> intervals_per_class_s = 2;
+  uint64 samples_produced = 3;
+  uint64 samples_dropped  = 4;
+}
+
+message MonitorSpokeFrame {
+  oneof body {
+    Sample sample               = 1;
+    WearProjection wear         = 2;
+    common.Ack ack              = 3;
+    common.LivenessPong pong    = 4;
+    string status_json          = 5;  // MonitorStatus as JSON
+    common.ConfigRequest config_request = 6;
+    common.ConfigAck config_ack = 7;
+  }
+}
+
+message MonitorHubFrame {
+  oneof body {
+    common.Command command      = 1;
+    common.Backpressure backpressure = 2;
+    common.RelayedData relay    = 3;
+    common.TimeStamp time_sync  = 4;
+    common.ConfigDelivery config = 5;
+  }
+}
+
+// istate is the server (REQ §3.1); monitord dials in, registers, stays.
+service MonitorHub {
+  rpc Register(common.RegistrationRequest) returns (common.RegistrationReply);
+  rpc Channel(stream MonitorSpokeFrame) returns (stream MonitorHubFrame);
+}

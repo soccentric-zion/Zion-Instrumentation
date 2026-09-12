@@ -1,0 +1,167 @@
+// Arches Instrumentation — shared protocol types.
+// One wire format for services (R3): gRPC everywhere; UDS on-box, WG tunnel to HQ.
+syntax = "proto3";
+package instr.common;
+
+// Every record carries monotonic time plus boot id alongside wall clock.
+// wall_valid=false until a time source acquires lock; re-stamped on
+// reconciliation (REQ §4 Timestamps, §11 clock unavailable).
+message TimeStamp {
+  uint64 mono_ns      = 1;  // CLOCK_MONOTONIC, ns since boot
+  string boot_id      = 2;  // boot identifier for spool disambiguation
+  int64  wall_unix_ns = 3;  // wall clock, unix epoch ns (valid iff wall_valid)
+  uint64 sequence     = 4;  // per-device monotonic arrival order
+  bool   wall_valid   = 5;
+}
+
+// X.733-oriented severity scale used by alarms and faults.
+enum Severity {
+  SEV_INFO     = 0;
+  SEV_WARNING  = 1;
+  SEV_MINOR    = 2;
+  SEV_MAJOR    = 3;
+  SEV_CRITICAL = 4;
+}
+
+// Every config key carries an origin (REQ §9).
+enum Origin {
+  ORIGIN_DEFAULT = 0;  // shipped image defaults
+  ORIGIN_APP     = 1;  // set by an application at runtime
+  ORIGIN_LOCAL   = 2;  // operator edit (Configuration UI / local console)
+  ORIGIN_HQ      = 3;  // pushed from HQ (must be signed)
+}
+
+enum HealthState {
+  HEALTH_PASS        = 0;
+  HEALTH_DEGRADED    = 1;
+  HEALTH_FAIL        = 2;
+  HEALTH_NOT_PRESENT = 3;
+  HEALTH_UNKNOWN     = 4;
+}
+
+// Spool classes. Drop policy (REQ §11 "spool full"): oldest telemetry first,
+// then log refs, then timeline events; alarms and faults are never dropped.
+enum SpoolClass {
+  SPOOL_TELEMETRY = 0;  // dropped first when the spool is full
+  SPOOL_LOGREF    = 1;
+  SPOOL_EVENT     = 2;
+  SPOOL_FAULT     = 3;  // protected
+  SPOOL_ALARM     = 4;  // protected
+}
+
+// ---- Registration handshake (REQ §3.1) ------------------------------------
+message RegistrationRequest {
+  string daemon            = 1;
+  string build_version     = 2;
+  uint32 proto_schema_version = 3;
+  repeated string capabilities = 4;
+}
+
+message RegistrationReply {
+  bool accepted     = 1;
+  string reason     = 2;  // diagnosable refusal message on mismatch
+  uint32 proto_schema_version = 3;
+  string istate_version = 4;
+  uint64 server_mono_ns = 5;
+}
+
+// ---- Hub ⇄ spoke generic frames -------------------------------------------
+// Per-daemon protos define their typed data payloads and embed these.
+message Command {
+  uint64 id       = 1;
+  string op       = 2;         // command-table op name (same table as _ctrl)
+  string json_args = 3;        // JSON object of arguments
+  string issued_by = 4;        // audit: local / hq / configuration
+}
+
+message Ack {
+  uint64 id       = 1;
+  bool   ok       = 2;
+  string code     = 3;         // error code string on failure
+  string message  = 4;         // diagnosable message, never silent
+  string json_payload = 5;    // JSON result data
+}
+
+message Backpressure {
+  bool   pause  = 1;
+  string reason = 2;
+}
+
+message LivenessPing { uint64 nonce = 1; }
+message LivenessPong { uint64 nonce = 1; }
+
+// istate → spoke relay of another daemon's data (R1: all traffic via istate).
+message RelayedData {
+  string source_daemon = 1;
+  string type          = 2;
+  string payload_json  = 3;
+  TimeStamp ts         = 4;
+}
+
+// ---- HQ session (istate.proto uses these) ----------------------------------
+message WgTunnel {
+  string hq_endpoint  = 1;  // host:port
+  string device_addr  = 2;  // device tunnel IP
+  string hq_addr      = 3;  // HQ tunnel IP
+  string peer_pubkey_b64 = 4;
+}
+
+message EnrollRequest {
+  string identity_json   = 1;  // factory identity summary
+  string pubkey_b64      = 2;  // device-generated WireGuard public key
+  string factory_sig_b64 = 3;  // HMAC(factory identity secret, pubkey)
+  uint64 nonce           = 4;
+}
+
+message EnrollReply {
+  bool   ok     = 1;
+  string reason = 2;
+  WgTunnel tunnel = 3;
+}
+
+// ---- Configuration delivery to a spoke (R4, §7, §9) -----------------------
+// istate is the sole reader/writer of /pst. A spoke never opens its own
+// config.yaml: it asks for its configuration on registration and is pushed a
+// new one whenever it changes. The YAML is validated against the daemon's
+// JSON Schema on both sides — istate rejects a bad write, the spoke rejects
+// a bad delivery and keeps running on its previous config (R10).
+message ConfigDelivery {
+  string daemon         = 1;
+  string yaml           = 2;   // effective config, merged, with origins applied
+  string schema_version = 3;   // /pst .schema-version at the time of delivery
+  uint64 revision       = 4;   // increments on every accepted change
+  map<string, Origin> origins = 5;  // per-key origin (§9)
+}
+
+// Spoke → hub: "send me my configuration". Sent right after registration and
+// again whenever a spoke wants to re-read (e.g. after a ctrl-driven reset).
+message ConfigRequest {
+  string daemon = 1;
+}
+
+// Spoke → hub: the outcome of applying a delivered config. A rejection is
+// loud: istate raises it northbound rather than assuming the push landed.
+message ConfigAck {
+  string daemon   = 1;
+  uint64 revision = 2;
+  bool   applied  = 3;
+  string reason   = 4;  // schema/validation error when applied = false
+}
+
+// Signed configuration push (REQ §9): verified on device before apply.
+//
+// signature is Ed25519 over "<daemon>|<yaml>" under the key named by key_id.
+// The device holds only public keys, so opening one device does not yield
+// the ability to sign for the fleet — which is the property §9 is after and
+// the reason the hmac field below is legacy.
+//
+// hmac is the older shared-secret form, kept for devices enrolled before
+// signing keys were distributed. It is accepted only while no signing key is
+// provisioned, and its use is reported northbound.
+message SignedConfig {
+  string daemon    = 1;
+  string yaml      = 2;
+  string key_id    = 3;
+  bytes  hmac      = 4;  // legacy: HMAC-SHA256(enrollment secret, daemon||yaml)
+  bytes  signature = 5;  // Ed25519 over daemon||"|"||yaml (64 bytes)
+}

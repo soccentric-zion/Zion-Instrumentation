@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arches.soccentric.com/schemas/monitord.schema.json",
+  "title": "monitord configuration (REQ \u00a77.3)",
+  "description": "Validated at load; a typo is a loud rejection, never a silent behavioural change (REQ \u00a79).",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Daemon enabled."
+    },
+    "log_level": {
+      "type": "string",
+      "enum": [
+        "TRACE",
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR",
+        "CRITICAL"
+      ],
+      "description": "Runtime log level for this daemon (\u00a74)."
+    },
+    "interval": {
+      "type": "number",
+      "minimum": 0.1,
+      "description": "Default sampling interval (s)."
+    },
+    "intervals_per_class": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0.1
+      },
+      "description": "Per-resource-class overrides: cpu / memory / storage / thermal / load / system."
+    },
+    "thermal_warn_c": {
+      "type": "number"
+    },
+    "thermal_critical_c": {
+      "type": "number"
+    },
+    "storage_warn_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "wear_projection_threshold_days": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "highres_window_s": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Rolling thermal/power window retained finer than telemetry ships (\u00a77.3)."
+    },
+    "highres_interval_s": {
+      "type": "number",
+      "minimum": 0.01
+    }
+  },
+  "required": [
+    "enabled"
+  ],
+  "additionalProperties": false
+}

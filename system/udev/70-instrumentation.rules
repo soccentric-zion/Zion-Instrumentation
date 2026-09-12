@@ -1,0 +1,11 @@
+# Device access where the Hardware daemon requires it (REQ §13).
+# GPIO char devices
+KERNEL=="gpiochip*", SUBSYSTEM=="gpio", GROUP="gpio", MODE="0660"
+# LEDs
+SUBSYSTEM=="leds", GROUP="instr-hardware", MODE="0660"
+# CAN interfaces
+KERNEL=="can*", SUBSYSTEM=="net", GROUP="instr-hardware", MODE="0660"
+# USB device reset authorization
+KERNEL=="usb*", SUBSYSTEM=="usb", GROUP="instr-hardware", MODE="0660"
+# Hardware watchdog
+KERNEL=="watchdog", GROUP="instr-istate", MODE="0660"

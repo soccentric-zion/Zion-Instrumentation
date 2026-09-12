@@ -1,0 +1,53 @@
+// faults — purely passive kernel-log observation (REQ §7.5, R6).
+// Fault IDs share the 32-bit alarm scheme (§8) under the fault domain so HQ
+// can correlate a kernel fault with an application-raised alarm.
+syntax = "proto3";
+package instr.faults;
+import "common.proto";
+
+message FaultEvent {
+  common.TimeStamp ts   = 1;
+  uint32 fault_id       = 2;   // 32-bit [domain=5][module][type][index]
+  string rule           = 3;   // symbolic rule name from fault-rules.yaml
+  common.Severity severity = 4;
+  string raw_line       = 5;
+  uint32 occurrences    = 6;   // dedup count within window
+  string device_key     = 7;   // dedup key (e.g. driver+device)
+  string x733_type      = 8;   // equipment / communications / processing / qos / environmental
+  string probable_cause = 9;
+  bool   backfill       = 10;  // true when recovered from boot ring backfill
+}
+
+message FaultStats {
+  uint64 lines_scanned  = 1;
+  uint64 faults_raised  = 2;
+  uint64 duplicates_merged = 3;
+  uint64 suppressed_events = 4;  // rate limiter "suppressed N events"
+  uint64 backfill_lines = 5;
+}
+
+message FaultSpokeFrame {
+  oneof body {
+    FaultEvent event            = 1;
+    common.Ack ack              = 2;
+    common.LivenessPong pong    = 3;
+    string status_json          = 4;  // FaultStats as JSON
+    common.ConfigRequest config_request = 5;
+    common.ConfigAck config_ack = 6;
+  }
+}
+
+message FaultHubFrame {
+  oneof body {
+    common.Command command      = 1;
+    common.Backpressure backpressure = 2;
+    common.RelayedData relay    = 3;
+    common.TimeStamp time_sync  = 4;
+    common.ConfigDelivery config = 5;
+  }
+}
+
+service FaultHub {
+  rpc Register(common.RegistrationRequest) returns (common.RegistrationReply);
+  rpc Channel(stream FaultSpokeFrame) returns (stream FaultHubFrame);
+}

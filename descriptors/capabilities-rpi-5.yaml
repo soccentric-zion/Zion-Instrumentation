@@ -1,0 +1,2 @@
+board: rpi-5
+capabilities: [watchdog, display]

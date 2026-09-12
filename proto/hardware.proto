@@ -1,0 +1,48 @@
+// hardware — full control of board hardware; the only daemon that touches it
+// directly (REQ §7.4, R7). Board knowledge lives in devices.yaml.
+syntax = "proto3";
+package instr.hardware;
+import "common.proto";
+
+message HealthCheckResult {
+  string device            = 1;
+  string check             = 2;
+  common.HealthState state = 3;
+  string detail            = 4;  // per-check detail payload
+  uint64 duration_ms       = 5;
+  common.TimeStamp ts      = 6;
+}
+
+message DeviceInfo {
+  string name     = 1;
+  string kind     = 2;  // gpio / led / can / usb / display / sensor / watchdog
+  bool   present  = 3;
+  repeated string controls = 4;  // control op names from the descriptor
+  repeated string checks   = 5;  // check op names from the descriptor
+}
+
+message HardwareSpokeFrame {
+  oneof body {
+    HealthCheckResult result    = 1;
+    common.Ack ack              = 2;
+    common.LivenessPong pong    = 3;
+    string status_json          = 4;
+    common.ConfigRequest config_request = 5;
+    common.ConfigAck config_ack = 6;
+  }
+}
+
+message HardwareHubFrame {
+  oneof body {
+    common.Command command      = 1;
+    common.Backpressure backpressure = 2;
+    common.RelayedData relay    = 3;
+    common.TimeStamp time_sync  = 4;
+    common.ConfigDelivery config = 5;
+  }
+}
+
+service HardwareHub {
+  rpc Register(common.RegistrationRequest) returns (common.RegistrationReply);
+  rpc Channel(stream HardwareSpokeFrame) returns (stream HardwareHubFrame);
+}

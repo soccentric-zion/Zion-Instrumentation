@@ -1,0 +1,42 @@
+[Unit]
+Description=Arches Instrumentation istate (hub)
+Documentation=file:///usr/share/doc/instrumentation/interface.md
+# /pst is a separate partition (p4, label "pst"), mounted by pst.mount from
+# meta-arches. This unit's ReadWritePaths live under it and ProtectSystem=strict
+# makes a missing path a start failure, so the ordering must be explicit rather
+# than incidental. See Task.md D-04.
+RequiresMountsFor=/pst
+After=network.target local-fs.target
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/instr-istate
+Restart=on-failure
+RestartSec=2s
+ReadWritePaths=/pst /run/instrumentation
+StateDirectory=instrumentation
+User=instr-istate
+Group=instr
+ProtectSystem=strict
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectHome=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+SystemCallArchitectures=native
+# CAP_CHOWN: istate hands each spoke's registration socket to that spoke's
+# own user, which is how the call graph is enforced (§3.1, §10). Without it
+# every socket stays root-owned and any member of the instr group can call
+# any hub service. No administrative capability is granted beyond it: istate
+# requests unit start/stop through systemd rather than performing privileged
+# operations itself (§7.1).
+AmbientCapabilities=CAP_CHOWN
+CapabilityBoundingSet=CAP_CHOWN
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target

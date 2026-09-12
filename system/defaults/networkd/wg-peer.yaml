@@ -1,0 +1,11 @@
+# WireGuard peer configuration (REQ §6: /pst/system/networkd/wg-peer.yaml).
+#
+# Seeded empty: the real values arrive from HQ at enrollment, once the device
+# has generated its keypair and HQ has verified it against the manufacturing
+# record (§6.2). The device's own private key is generated on device and
+# never appears here or in any backup (§7.10, §10).
+hq_endpoint: ""
+device_addr: ""
+hq_addr: ""
+peer_pubkey: ""
+listen_port: 51820

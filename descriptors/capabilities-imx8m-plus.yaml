@@ -1,0 +1,2 @@
+board: imx8m-plus
+capabilities: [can, display, watchdog, gnss, wifi_ap]

@@ -1,0 +1,20 @@
+# Board device descriptor seeded into /pst/system/hardware/devices.yaml
+# (REQ §6). The image's per-MACHINE descriptor overwrites this on first
+# boot; this copy exists so a virgin device has a coherent /pst layout
+# even before the board's own descriptor is installed.
+board: x86-64
+devices:
+  - name: status-led
+    kind: led
+    controls: [led_set, led_blink]
+    checks:
+      - name: blink-ack
+        op: led_blink_ack
+  - name: usb-cam
+    kind: usb
+    params:
+      port: 1-4
+    controls: [usb_reset]
+    checks:
+      - name: reset-ack
+        op: usb_reset_ack

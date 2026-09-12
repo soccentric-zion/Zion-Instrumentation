@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arches.soccentric.com/schemas/backup.schema.json",
+  "title": "backup configuration (REQ \u00a77.10)",
+  "description": "Validated at load; a typo is a loud rejection, never a silent behavioural change (REQ \u00a79).",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Daemon enabled."
+    },
+    "log_level": {
+      "type": "string",
+      "enum": [
+        "TRACE",
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR",
+        "CRITICAL"
+      ],
+      "description": "Runtime log level for this daemon (\u00a74)."
+    },
+    "paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "excludes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "schedule_enabled": {
+      "type": "boolean"
+    },
+    "schedule_interval_s": {
+      "type": "integer",
+      "minimum": 60
+    },
+    "destination": {
+      "type": "string",
+      "enum": [
+        "local",
+        "hq",
+        "both"
+      ]
+    },
+    "local_dir": {
+      "type": "string"
+    },
+    "retain_archives": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "required": [
+    "enabled"
+  ],
+  "additionalProperties": false
+}

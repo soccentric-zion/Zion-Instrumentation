@@ -1,0 +1,44 @@
+# Formatting for Arches Instrumentation (REQ §14: consistent style, no drift).
+#
+# Microsoft style (Allman braces, which is what this tree is actually written
+# in) with a deliberately very wide column limit, tuned to the house
+# conventions so a finding means real drift rather than a fight over idiom:
+#   - ColumnLimit 300 is effectively "do not re-wrap". Lines here are broken
+#     where the author judged the break to read best -- long gRPC signatures,
+#     descriptor tables and REQ-referencing comments all suffer from mechanical
+#     wrapping. 300 is not a target width; nothing in the tree approaches it.
+#     It is the way to say "leave my line breaks alone" in a clang-format
+#     config, since there is no setting that means exactly that.
+#   - One-liners stay one-liners where clang-format allows it: short case
+#     labels (`case X: return "y";` name maps), braceless short ifs/loops,
+#     single-statement and empty blocks (`} catch (...) {}`). Multi-statement
+#     blocks are still split -- clang-format has no setting to keep those.
+#   - Comments are hand-wrapped and hand-aligned (doxygen file headers, REQ
+#     §-references, struct field comments). ReflowComments is off so the text
+#     is never re-flowed, and AlignTrailingComments is `Leave` so the existing
+#     column alignment is preserved exactly as written.
+#
+#     `Leave` matters and is not the same as `false`: `false` means "do not
+#     align", which makes clang-format actively collapse hand-aligned padding
+#     down to a single space. This file used to say `false` while its own
+#     comment promised that clang-format "never moves them", and the result
+#     was that `make check-format` failed on 26 untouched files across the
+#     tree. See Task.md G-01.
+#   - Includes are left exactly as written (SortIncludes: Never): the house
+#     order -- main header, blank line, system block, blank line, project
+#     block -- is deliberate, and Google's block regrouping would churn it.
+Language: Cpp
+BasedOnStyle: Microsoft
+ColumnLimit: 300
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortBlocksOnASingleLine: Always
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: true
+AllowShortLambdasOnASingleLine: All
+AlignTrailingComments:
+  Kind: Leave
+  OverEmptyLines: 0
+ReflowComments: false
+SortIncludes: Never
+DerivePointerAlignment: false
+PointerAlignment: Left

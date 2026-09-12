@@ -1,0 +1,43 @@
+# ThreadSanitizer suppressions — third-party libraries only.
+#
+# WHY THIS FILE EXISTS
+#
+# The system gRPC, protobuf and abseil libraries are NOT built with
+# -fsanitize=thread. TSan cannot see synchronization it was not compiled into,
+# so every buffer gRPC hands between its own threads looks like an unsynchronised
+# read/write. On this tree that is ~350 warnings per run of the integration
+# suite, none of them in instrumentation code.
+#
+# The right fix is a TSan-instrumented gRPC/protobuf/abseil, which means
+# building those from source under the sanitizer. That is a CI image change,
+# not a code change. Until then these suppressions keep the TSan stage
+# meaningful instead of permanently red.
+#
+# SCOPE IS DELIBERATELY NARROW. Every entry names a third-party library or
+# symbol namespace. Nothing here matches instr:: code, so a genuine race in
+# this repo still fails the stage -- which is the only reason to run TSan at
+# all. Do not add a broad pattern here to make a failure go away; if a race
+# is in our code, it is a finding.
+#
+# Verified: with this file the TSan stage passes; removing it returns the
+# stage to ~350 warnings, all with a third-party frame in the stack.
+
+# --- gRPC core and C++ bindings --------------------------------------------
+race:libgrpc.so
+race:libgrpc++.so
+race:libgpr.so
+race:grpc_core::
+race:grpc::
+# gRPC's zero-copy reader is a header, so it compiles into our binaries and
+# cannot be matched by library name.
+race:proto_buffer_reader.h
+
+# --- protobuf ---------------------------------------------------------------
+race:libprotobuf.so
+race:google::protobuf::
+# Header-inlined parser, same reason as proto_buffer_reader.h above.
+race:parse_context.h
+
+# --- abseil (pulled in by gRPC) --------------------------------------------
+race:libabsl
+race:absl::

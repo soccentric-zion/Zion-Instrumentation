@@ -1,0 +1,16 @@
+board: rpi-5
+devices:
+  - name: status-led
+    kind: led
+    controls: [led_set, led_blink]
+    checks:
+      - name: blink-ack
+        op: led_blink_ack
+  - name: gpio-user
+    kind: gpio
+    params:
+      line: 17
+    controls: [gpio_set]
+    checks:
+      - name: toggle
+        op: gpio_toggle_read

@@ -1,0 +1,55 @@
+// logmanager — collection, rotation, live tail, bundles, crash forensics.
+// Bulk payload transfer uses a handle; the payload never traverses istate's
+// control path (REQ §7.7) — fetch happens on the daemon's data socket.
+syntax = "proto3";
+package instr.logmanager;
+import "common.proto";
+
+message TailLine {
+  common.TimeStamp ts = 1;
+  string source      = 2;
+  common.Severity level = 3;  // INFO..CRITICAL mapped from log levels
+  string message     = 4;
+}
+
+message BundleHandle {
+  string handle      = 1;   // opaque handle; metadata travels, payload does not
+  string meta_json   = 2;   // window, sources, size, sha256
+  uint64 size_bytes  = 3;
+  string sha256      = 4;
+}
+
+message CrashReport {
+  string daemon          = 1;
+  string coredump_handle = 2;
+  uint32 tail_lines      = 3;
+  common.TimeStamp ts    = 4;
+}
+
+message LogSpokeFrame {
+  oneof body {
+    TailLine line               = 1;
+    BundleHandle bundle         = 2;
+    CrashReport crash           = 3;
+    common.Ack ack              = 4;
+    common.LivenessPong pong    = 5;
+    string status_json          = 6;
+    common.ConfigRequest config_request = 7;
+    common.ConfigAck config_ack = 8;
+  }
+}
+
+message LogHubFrame {
+  oneof body {
+    common.Command command      = 1;
+    common.Backpressure backpressure = 2;
+    common.RelayedData relay    = 3;
+    common.TimeStamp time_sync  = 4;
+    common.ConfigDelivery config = 5;
+  }
+}
+
+service LogHub {
+  rpc Register(common.RegistrationRequest) returns (common.RegistrationReply);
+  rpc Channel(stream LogSpokeFrame) returns (stream LogHubFrame);
+}

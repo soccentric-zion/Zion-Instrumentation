@@ -1,0 +1,7 @@
+# istate configuration (defaults; origin: default)
+enabled: true
+time_source_priority: [gnss, ptp, ntp]
+ntp_servers: [pool.ntp.org]
+ptp_domain: 0
+gnss_constellations: [gps, galileo, glonass, beidou]
+hq_endpoint: hq.arches.example:51820

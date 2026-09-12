@@ -1,0 +1,32 @@
+[Unit]
+Description=Arches Instrumentation networkd
+Documentation=file:///usr/share/doc/instrumentation/interface.md
+After=instr-istate.service instr-faults.service instr-monitord.service instr-hardware.service instr-alarms.service instr-logmanager.service instr-telemetry.service
+Wants=instr-istate.service instr-faults.service instr-monitord.service instr-hardware.service instr-alarms.service instr-logmanager.service instr-telemetry.service
+# istate owns orchestration; systemd owns restart policy and sandboxing (§7.1).
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/instr-networkd
+Restart=on-failure
+RestartSec=2s
+# network administration capability only (§10).
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_RAW
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW
+ReadWritePaths=/run/instrumentation /etc/instrumentation
+User=instr-networkd
+Group=instr
+ProtectSystem=strict
+PrivateTmp=yes
+NoNewPrivileges=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+SystemCallArchitectures=native
+ProtectHome=yes
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target

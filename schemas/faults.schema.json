@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arches.soccentric.com/schemas/faults.schema.json",
+  "title": "faults configuration (REQ \u00a77.5)",
+  "description": "Validated at load; a typo is a loud rejection, never a silent behavioural change (REQ \u00a79).",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Daemon enabled."
+    },
+    "log_level": {
+      "type": "string",
+      "enum": [
+        "TRACE",
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR",
+        "CRITICAL"
+      ],
+      "description": "Runtime log level for this daemon (\u00a74)."
+    },
+    "backfill_boot_log": {
+      "type": "boolean",
+      "description": "Read the full kernel ring from the start on launch (\u00a77.5)."
+    },
+    "poll_interval_s": {
+      "type": "number",
+      "minimum": 0.05,
+      "description": "Kernel ring / journal follow interval."
+    },
+    "max_events_per_s": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Hard rate limit; surplus summarised as 'suppressed N events'."
+    },
+    "stream_to_hq": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "enabled"
+  ],
+  "additionalProperties": false
+}

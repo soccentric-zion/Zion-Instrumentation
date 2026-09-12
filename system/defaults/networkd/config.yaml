@@ -1,0 +1,6 @@
+# networkd configuration (defaults)
+enabled: true
+log_level: INFO
+tunnel_guard_timeout_s: 30
+remote_ssh_default_enabled: false
+connectivity_probe_interval_s: 10

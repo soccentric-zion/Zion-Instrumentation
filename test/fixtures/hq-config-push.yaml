@@ -1,0 +1,10 @@
+# A configuration push as HQ would send it (REQ §9): signed, and carrying
+# only the keys it intends to change. Operator-edited keys are protected by
+# origin unless the push is forced.
+enabled: true
+interval: 15
+thermal_warn_c: 70.0
+thermal_critical_c: 85.0
+intervals_per_class:
+  thermal: 2.0
+  storage: 60.0

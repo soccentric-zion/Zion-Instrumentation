@@ -1,0 +1,30 @@
+board: jetson-orin-nano
+devices:
+  - name: status-led
+    kind: led
+    controls: [led_set, led_blink]
+    checks:
+      - name: blink-ack
+        op: led_blink_ack
+  - name: gpio-power
+    kind: gpio
+    params:
+      line: 414
+    controls: [gpio_set]
+    checks:
+      - name: toggle
+        op: gpio_toggle_read
+  - name: can0
+    kind: can
+    controls: [can_send, can_recv]
+    params:
+      iface: can0
+    checks:
+      - name: loopback
+        op: can_loopback
+  - name: display
+    kind: display
+    controls: [display_control]
+    checks:
+      - name: probe
+        op: display_probe

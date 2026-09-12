@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arches.soccentric.com/schemas/ota.schema.json",
+  "title": "ota configuration (REQ \u00a77.9)",
+  "description": "Validated at load; a typo is a loud rejection, never a silent behavioural change (REQ \u00a79).",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Daemon enabled."
+    },
+    "log_level": {
+      "type": "string",
+      "enum": [
+        "TRACE",
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR",
+        "CRITICAL"
+      ],
+      "description": "Runtime log level for this daemon (\u00a74)."
+    },
+    "confirm_timeout_s": {
+      "type": "number",
+      "minimum": 1,
+      "description": "An unconfirmed update rolls back automatically after this (\u00a77.9, \u00a711)."
+    },
+    "min_version": {
+      "type": "string",
+      "description": "Anti-rollback floor (\u00a77.9)."
+    },
+    "bandwidth_limit_bytes_per_s": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "0 = unlimited."
+    },
+    "tick_interval_s": {
+      "type": "number",
+      "minimum": 0.1
+    },
+    "swupdate_binary": {
+      "type": "string"
+    },
+    "maintenance_windows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string"
+          },
+          "end": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "day",
+          "start",
+          "end"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "enabled"
+  ],
+  "additionalProperties": false
+}
