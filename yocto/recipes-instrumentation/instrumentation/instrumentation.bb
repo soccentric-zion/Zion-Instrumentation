@@ -19,7 +19,7 @@ HOMEPAGE = "https://zion.example"
 # See Task.md D-14.
 LICENSE = "CLOSED"
 
-SRC_URI = "git://github.com/soccentric-zion/Zion-Instrumentation.git;protocol=ssh;branch=develop"
+SRC_URI = "git://github.com/soccentric-zion/Zion-Instrumentation.git;protocol=ssh;user=git;branch=develop"
 # Pinned, not AUTOREV. Two builds of the same release tag must produce the same
 # software, which is disqualifying to get wrong for an image with an OTA story:
 # a SWUpdate artifact built from a floating branch is not reproducible, so a
@@ -30,6 +30,13 @@ SRC_URI = "git://github.com/soccentric-zion/Zion-Instrumentation.git;protocol=ss
 # -- a release build must never silently float.
 # Held in its own variable: referencing SRCREV from inside SRCREV's own
 # expansion is self-referential and bitbake would recurse on it.
+# user=git is required: GitHub's SSH endpoint authenticates every
+# deploy key as the literal account "git" regardless of the actual
+# key owner, and rejects a connection with no username at all
+# ("ssh://github.com/..." without "user=git"). Missing here since
+# this recipe was first written -- confirmed by an actual do_fetch
+# failure (exit code 128) the first time this SRC_URI was ever
+# actually fetched anywhere in the fleet.
 INSTR_SRCREV ?= "f4c306d73e807d2ba9923111838a0029e68a926a"
 SRCREV = "${@d.getVar('AUTOREV') if d.getVar('ZION_DEV_BUILD') == '1' else d.getVar('INSTR_SRCREV')}"
 # One version for the whole suite (REQ §2). This used to read PV from
