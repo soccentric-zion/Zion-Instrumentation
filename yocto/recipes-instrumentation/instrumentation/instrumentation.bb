@@ -32,9 +32,17 @@ SRC_URI = "git://github.com/soccentric-zion/Zion-Instrumentation.git;protocol=ss
 # expansion is self-referential and bitbake would recurse on it.
 INSTR_SRCREV ?= "f4c306d73e807d2ba9923111838a0029e68a926a"
 SRCREV = "${@d.getVar('AUTOREV') if d.getVar('ZION_DEV_BUILD') == '1' else d.getVar('INSTR_SRCREV')}"
-# One version for the whole suite (REQ §2): read it from the VERSION file
-# rather than restating it here, where it would drift.
-PV = "${@open(d.getVar('S') + '/VERSION').read().strip() if os.path.exists(d.getVar('S') + '/VERSION') else '0.0.0'}"
+# One version for the whole suite (REQ §2). This used to read PV from
+# S/VERSION via a python expression: PV -> S -> WORKDIR -> PV (WORKDIR's own
+# definition in bitbake.conf embeds PV), an unconditional circular
+# dependency, not a per-machine quirk. Confirmed by an actual build the
+# first time this recipe was ever parsed to completion anywhere in the
+# fleet (RecursionError: maximum recursion depth exceeded). Pin the
+# version literally instead, matching VERSION's current content, with
+# +git${SRCPV} for the exact commit built -- the standard bitbake idiom for
+# a git-fetched recipe (see e.g. Acadia-Configuration's webconfigd.bb).
+# Bump the "1.0.0" by hand if VERSION changes.
+PV = "1.0.0+git${SRCPV}"
 S = "${WORKDIR}/git"
 
 inherit cmake systemd pkgconfig useradd
