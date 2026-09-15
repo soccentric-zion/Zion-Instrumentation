@@ -1,9 +1,9 @@
-# Arches Instrumentation — Yocto recipe (REQ §13).
+# Zion Instrumentation — Yocto recipe (REQ §13).
 # The recipe builds and installs; all system files (units, sysusers,
 # tmpfiles, udev, defaults) ship inside the repo and are installed from it.
-SUMMARY = "Arches Instrumentation on-device management and observability suite"
+SUMMARY = "Zion Instrumentation on-device management and observability suite"
 DESCRIPTION = "Hub-and-spoke instrumentation: istate hub, nine spokes, one external face"
-HOMEPAGE = "https://arches.example"
+HOMEPAGE = "https://zion.example"
 # CLOSED, matching every source header in this repo ("a proprietary product of
 # Soccentric... may not be used, copied, modified, distributed, or disclosed...
 # without the express prior written consent") and matching the sibling
@@ -19,19 +19,19 @@ HOMEPAGE = "https://arches.example"
 # See Task.md D-14.
 LICENSE = "CLOSED"
 
-SRC_URI = "git://github.com/soccentric-arches/Arches-Instrumentation.git;protocol=ssh;branch=develop"
+SRC_URI = "git://github.com/soccentric-zion/Zion-Instrumentation.git;protocol=ssh;branch=develop"
 # Pinned, not AUTOREV. Two builds of the same release tag must produce the same
 # software, which is disqualifying to get wrong for an image with an OTA story:
 # a SWUpdate artifact built from a floating branch is not reproducible, so a
 # rollback cannot be reasoned about. Bump this deliberately when releasing.
 #
 # For bring-up, a floating branch is still available without editing the
-# recipe: set ARCHES_DEV_BUILD = "1" in local.conf. That is opt-in on purpose
+# recipe: set ZION_DEV_BUILD = "1" in local.conf. That is opt-in on purpose
 # -- a release build must never silently float.
 # Held in its own variable: referencing SRCREV from inside SRCREV's own
 # expansion is self-referential and bitbake would recurse on it.
-INSTR_SRCREV ?= "fb0fe9cedb5729909a1ae15df2e8ed8189db4b7a"
-SRCREV = "${@d.getVar('AUTOREV') if d.getVar('ARCHES_DEV_BUILD') == '1' else d.getVar('INSTR_SRCREV')}"
+INSTR_SRCREV ?= "f4c306d73e807d2ba9923111838a0029e68a926a"
+SRCREV = "${@d.getVar('AUTOREV') if d.getVar('ZION_DEV_BUILD') == '1' else d.getVar('INSTR_SRCREV')}"
 # One version for the whole suite (REQ §2): read it from the VERSION file
 # rather than restating it here, where it would drift.
 PV = "${@open(d.getVar('S') + '/VERSION').read().strip() if os.path.exists(d.getVar('S') + '/VERSION') else '0.0.0'}"
