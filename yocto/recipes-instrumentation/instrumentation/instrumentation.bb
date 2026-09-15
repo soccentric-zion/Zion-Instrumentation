@@ -37,7 +37,7 @@ SRC_URI = "git://github.com/soccentric-zion/Zion-Instrumentation.git;protocol=ss
 # this recipe was first written -- confirmed by an actual do_fetch
 # failure (exit code 128) the first time this SRC_URI was ever
 # actually fetched anywhere in the fleet.
-INSTR_SRCREV ?= "902cf34"
+INSTR_SRCREV ?= "5aa41250cb316dac8ad5242e38b1a37e11150371"
 SRCREV = "${@d.getVar('AUTOREV') if d.getVar('ZION_DEV_BUILD') == '1' else d.getVar('INSTR_SRCREV')}"
 # One version for the whole suite (REQ §2). This used to read PV from
 # S/VERSION via a python expression: PV -> S -> WORKDIR -> PV (WORKDIR's own
