@@ -241,56 +241,48 @@ daemons start early so boot-window anomalies are captured.
 
 ## Build
 
-There are two build targets and they have different jobs. Confusing them is
-what made this section contradict itself for a while, so the split is stated
-first:
-
-| | Host-native (x86_64) | Container (aarch64) |
-|---|---|---|
-| Used for | **the gate** — every edit, every loop | release artifacts and CI |
-| Speed | seconds | slow: qemu-emulated on an x86_64 host |
-| Needs | a C++17 toolchain, CMake, protoc/grpc | Docker + binfmt |
-| Proves | the code is correct | the code is correct *for the device* |
-
-**Host-native is the default developer workflow and what `.claude/validate.sh`
-runs.** It is fast enough to run on every change, which is the only property
-that matters for a gate.
+**Host-native is the only build you need day to day.** It needs nothing but
+a C++17 toolchain, CMake, and protoc/grpc on the host — no Docker, no
+cross-compiler, no emulation. It's what `.claude/validate.sh` runs, and it's
+fast enough to run on every change:
 
 ```bash
-cmake --preset host-debug
-cmake --build --preset host-debug -j
-ctest --preset host-debug --output-on-failure
+make build   # cmake --preset host-debug && cmake --build --preset host-debug
+make test    # ctest --preset host-debug --output-on-failure
 ```
 
-Presets: `host-debug`, `host-release`, `ninja-host-debug`,
-`ninja-host-release`, `asan`, `ubsan`, `tsan`, `coverage`,
-`jenkins` (CI), plus cross toolchains per target under `cmake/toolchains/`
-(`cross-jetson-orin-nano`, `cross-zynq-ultrascale`, …).
+`make check-format` and `make format` run clang-format the same way (CI
+enforces `.clang-format`, Microsoft-based, effectively unwrapped — see the
+rationale in that file); `make tidy` runs clang-tidy. All four use the
+`host-debug` preset by default — pass `PRESET=host-release` (or any other
+preset in `CMakePresets.json`, e.g. `asan`, `tsan`, `coverage`) to use a
+different one.
 
-**The container build is aarch64** — the Jetson fleet — in `docker/`
-(Ubuntu 22.04 arm64, the JetPack 6 userland generation, so the binaries match
-the device glibc; on an x86_64 host it runs under qemu via binfmt, installed
-automatically). Use it to produce what ships, and before a release:
+That's the whole workflow. Nothing below this line is part of it.
+
+<details>
+<summary>Cross/release build (aarch64, needs Docker) — only for producing
+device-matching release artifacts before a release, not for everyday work</summary>
+
+The Jetson fleet ships aarch64 binaries built against the JetPack 6 glibc.
+`docker/` holds an Ubuntu 22.04 arm64 container that builds those; on an
+x86_64 host it runs under qemu via binfmt (installed automatically). Cross
+toolchains per target also exist under `cmake/toolchains/`
+(`cross-jetson-orin-nano`, `cross-zynq-ultrascale`, …) for use outside the
+container.
 
 ```bash
-make               # aarch64 build for the fleet -> build-aarch64/
-make test          # the test suite, inside the arm64 container
-make check-format  # clang-format gate, inside the arm64 container
-make tidy          # clang-tidy, inside the arm64 container (slow under qemu)
-make shell         # interactive shell in the arm64 container
+make aarch64-build          # aarch64 build for the fleet -> build-aarch64/
+make aarch64-test           # the test suite, inside the arm64 container
+make aarch64-check-format   # clang-format gate, inside the arm64 container
+make aarch64-tidy           # clang-tidy, inside the arm64 container (slow under qemu)
+make aarch64-shell          # interactive shell in the arm64 container
 ```
 
-Both must pass before a release. Only the host-native one has to pass before
-every commit.
+This has to pass before a release. It never gates a commit — only the
+host-native build does.
 
-Formatting is enforced in CI (`.clang-format`, Microsoft-based, effectively
-unwrapped — see the rationale in that file):
-
-```bash
-make check-format                                        # verify (CI gate)
-make format                                              # rewrite in place
-cmake --build --preset host-debug --target check-format  # manual equivalent
-```
+</details>
 
 ## Deploy
 
