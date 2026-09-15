@@ -14,9 +14,9 @@ they touch the same objects. Which one owns device system state is an open human
 ## How you work here
 
 * Commands: `.claude/commands/` — validate.
-* Build: **host-native is the default and what the gate runs.** The aarch64 container in
-  `docker/` is the release and CI target; on an x86_64 host it is qemu-emulated and slow. See
-  README "Build". Both must pass before a release; only host-native gates an edit.
+* Build: **host-native only.** No Docker, no cross-compiler, no emulation — a C++17 toolchain,
+  CMake, and protoc/grpc on the host is everything this repo builds and tests with. See README
+  "Build"
 * Test: 321 tests — unit, contract, integration, fault-injection, secret-leak. No hardware
   needed; the simulated platform covers the board.
 * Write: all target variation lives in `lib/platform` and in `descriptors/` (R9). There is no

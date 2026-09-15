@@ -1,6 +1,10 @@
 {
   "version": 6,
-  "cmakeMinimumRequired": {"major": 3, "minor": 16, "patch": 0},
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 16,
+    "patch": 0
+  },
   "configurePresets": [
     {
       "name": "base",
@@ -14,13 +18,50 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja"
     },
-    {"name": "host-debug", "inherits": "base", "cacheVariables": {"CMAKE_BUILD_TYPE": "Debug", "BUILD_TESTING": "ON"}},
-    {"name": "host-release", "inherits": "base", "cacheVariables": {"CMAKE_BUILD_TYPE": "Release", "BUILD_TESTING": "ON"}},
-    {"name": "ninja-host-debug", "inherits": "ninja-base", "cacheVariables": {"CMAKE_BUILD_TYPE": "Debug", "BUILD_TESTING": "ON"}},
-    {"name": "ninja-host-release", "inherits": "ninja-base", "cacheVariables": {"CMAKE_BUILD_TYPE": "Release", "BUILD_TESTING": "ON"}},
-    {"name": "coverage", "inherits": "base", "cacheVariables": {"CMAKE_BUILD_TYPE": "Debug", "COVERAGE": "ON", "BUILD_TESTING": "ON"}},
     {
-      "name": "asan", "inherits": "base",
+      "name": "host-debug",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "host-release",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "ninja-host-debug",
+      "inherits": "ninja-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "ninja-host-release",
+      "inherits": "ninja-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "coverage",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "COVERAGE": "ON",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "asan",
+      "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer -g",
@@ -29,7 +70,8 @@
       }
     },
     {
-      "name": "tsan", "inherits": "base",
+      "name": "tsan",
+      "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_FLAGS": "-fsanitize=thread -fno-omit-frame-pointer -g",
@@ -38,49 +80,92 @@
       }
     },
     {
-      "name": "jenkins", "inherits": "base",
+      "name": "jenkins",
+      "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_CXX_FLAGS": "--coverage",
         "CMAKE_EXE_LINKER_FLAGS": "--coverage",
         "BUILD_TESTING": "ON"
       }
-    },
-    {"name": "cross-jetson-orin-nano", "inherits": "base", "toolchainFile": "${sourceDir}/cmake/toolchains/jetson-orin-nano.cmake", "cacheVariables": {"CMAKE_BUILD_TYPE": "Release"}},
-    {"name": "cross-jetson-agx-orin", "inherits": "base", "toolchainFile": "${sourceDir}/cmake/toolchains/jetson-agx-orin.cmake", "cacheVariables": {"CMAKE_BUILD_TYPE": "Release"}},
-    {"name": "cross-zynq-ultrascale", "inherits": "base", "toolchainFile": "${sourceDir}/cmake/toolchains/zynq-ultrascale.cmake", "cacheVariables": {"CMAKE_BUILD_TYPE": "Release"}},
-    {"name": "cross-zynq-7000", "inherits": "base", "toolchainFile": "${sourceDir}/cmake/toolchains/zynq-7000.cmake", "cacheVariables": {"CMAKE_BUILD_TYPE": "Release"}},
-    {"name": "cross-imx8m-plus", "inherits": "base", "toolchainFile": "${sourceDir}/cmake/toolchains/imx8m-plus.cmake", "cacheVariables": {"CMAKE_BUILD_TYPE": "Release"}},
-    {"name": "cross-sitara-am62", "inherits": "base", "toolchainFile": "${sourceDir}/cmake/toolchains/sitara-am62.cmake", "cacheVariables": {"CMAKE_BUILD_TYPE": "Release"}},
-    {"name": "cross-x86-64", "inherits": "base", "toolchainFile": "${sourceDir}/cmake/toolchains/x86-64.cmake", "cacheVariables": {"CMAKE_BUILD_TYPE": "Release"}},
-    {"name": "cross-rpi-4b", "inherits": "base", "toolchainFile": "${sourceDir}/cmake/toolchains/rpi-4b.cmake", "cacheVariables": {"CMAKE_BUILD_TYPE": "Release"}},
-    {"name": "cross-rpi-5", "inherits": "base", "toolchainFile": "${sourceDir}/cmake/toolchains/rpi-5.cmake", "cacheVariables": {"CMAKE_BUILD_TYPE": "Release"}}
+    }
   ],
   "buildPresets": [
-    {"name": "host-debug", "configurePreset": "host-debug"},
-    {"name": "host-release", "configurePreset": "host-release"},
-    {"name": "ninja-host-debug", "configurePreset": "ninja-host-debug"},
-    {"name": "ninja-host-release", "configurePreset": "ninja-host-release"},
-    {"name": "coverage", "configurePreset": "coverage"},
-    {"name": "asan", "configurePreset": "asan"},
-    {"name": "tsan", "configurePreset": "tsan"},
-    {"name": "jenkins", "configurePreset": "jenkins"},
-    {"name": "cross-jetson-orin-nano", "configurePreset": "cross-jetson-orin-nano"},
-    {"name": "cross-jetson-agx-orin", "configurePreset": "cross-jetson-agx-orin"},
-    {"name": "cross-zynq-ultrascale", "configurePreset": "cross-zynq-ultrascale"},
-    {"name": "cross-zynq-7000", "configurePreset": "cross-zynq-7000"},
-    {"name": "cross-imx8m-plus", "configurePreset": "cross-imx8m-plus"},
-    {"name": "cross-sitara-am62", "configurePreset": "cross-sitara-am62"},
-    {"name": "cross-x86-64", "configurePreset": "cross-x86-64"},
-    {"name": "cross-rpi-4b", "configurePreset": "cross-rpi-4b"},
-    {"name": "cross-rpi-5", "configurePreset": "cross-rpi-5"}
+    {
+      "name": "host-debug",
+      "configurePreset": "host-debug"
+    },
+    {
+      "name": "host-release",
+      "configurePreset": "host-release"
+    },
+    {
+      "name": "ninja-host-debug",
+      "configurePreset": "ninja-host-debug"
+    },
+    {
+      "name": "ninja-host-release",
+      "configurePreset": "ninja-host-release"
+    },
+    {
+      "name": "coverage",
+      "configurePreset": "coverage"
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan"
+    },
+    {
+      "name": "tsan",
+      "configurePreset": "tsan"
+    },
+    {
+      "name": "jenkins",
+      "configurePreset": "jenkins"
+    }
   ],
   "testPresets": [
-    {"name": "host-debug", "configurePreset": "host-debug", "output": {"outputOnFailure": true}},
-    {"name": "ninja-host-debug", "configurePreset": "ninja-host-debug", "output": {"outputOnFailure": true}},
-    {"name": "coverage", "configurePreset": "coverage", "output": {"outputOnFailure": true}},
-    {"name": "asan", "configurePreset": "asan", "output": {"outputOnFailure": true}},
-    {"name": "tsan", "configurePreset": "tsan", "output": {"outputOnFailure": true}},
-    {"name": "jenkins", "configurePreset": "jenkins", "output": {"outputOnFailure": true}}
+    {
+      "name": "host-debug",
+      "configurePreset": "host-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ninja-host-debug",
+      "configurePreset": "ninja-host-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "coverage",
+      "configurePreset": "coverage",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "tsan",
+      "configurePreset": "tsan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "jenkins",
+      "configurePreset": "jenkins",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
   ]
 }

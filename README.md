@@ -34,7 +34,6 @@ instrumentation/
   test/         unit, contract, integration harness, fault injection,
                 secret-leak
   yocto/        bitbake recipe (installs; carries no system files of its own)
-  docker/       arm64 (Jetson/aarch64) build container + its Makefile
   docs/         generated interface reference (docgen.py, cannot drift)
 ```
 
@@ -258,31 +257,7 @@ rationale in that file); `make tidy` runs clang-tidy. All four use the
 preset in `CMakePresets.json`, e.g. `asan`, `tsan`, `coverage`) to use a
 different one.
 
-That's the whole workflow. Nothing below this line is part of it.
-
-<details>
-<summary>Cross/release build (aarch64, needs Docker) — only for producing
-device-matching release artifacts before a release, not for everyday work</summary>
-
-The Jetson fleet ships aarch64 binaries built against the JetPack 6 glibc.
-`docker/` holds an Ubuntu 22.04 arm64 container that builds those; on an
-x86_64 host it runs under qemu via binfmt (installed automatically). Cross
-toolchains per target also exist under `cmake/toolchains/`
-(`cross-jetson-orin-nano`, `cross-zynq-ultrascale`, …) for use outside the
-container.
-
-```bash
-make aarch64-build          # aarch64 build for the fleet -> build-aarch64/
-make aarch64-test           # the test suite, inside the arm64 container
-make aarch64-check-format   # clang-format gate, inside the arm64 container
-make aarch64-tidy           # clang-tidy, inside the arm64 container (slow under qemu)
-make aarch64-shell          # interactive shell in the arm64 container
-```
-
-This has to pass before a release. It never gates a commit — only the
-host-native build does.
-
-</details>
+That's the whole workflow: there is no cross-compilation or container build in this repo.
 
 ## Deploy
 
