@@ -75,6 +75,26 @@ endforeach()
 add_library(instr_protos STATIC ${PROTO_SRCS})
 target_include_directories(instr_protos PUBLIC "${PROTO_GEN}" "${PROTO_DIR}")
 target_link_libraries(instr_protos PUBLIC protobuf::libprotobuf)
+# protobuf 4.25's generated map-field code (TypeDefinedMapFieldBase, used by
+# messages with a map<..> field, e.g. hardware.proto/faults.proto) calls
+# directly into Abseil's CHECK/LOG machinery. protobuf::libprotobuf is a
+# shared library here and its own INTERFACE_LINK_LIBRARIES (via absl::absl_log)
+# doesn't transitively pull these specific _internal targets into a
+# consumer's link line, so any executable linking instr_protos statically
+# gets "undefined reference to absl::...log_internal::..." -- confirmed by
+# an actual build, every daemon that happens to touch a map field fails.
+# Link the concrete internal targets explicitly rather than relying on the
+# umbrella target.
+if(TARGET absl::log_internal_message)
+  target_link_libraries(instr_protos PUBLIC
+    absl::log_internal_message
+    absl::log_internal_check_op
+    absl::log_internal_conditions
+    absl::log_internal_nullguard
+    absl::log_internal_globals
+    absl::log_internal_log_sink_set
+    absl::log_internal_proto)
+endif()
 if(TARGET gRPC::grpc++)
   target_link_libraries(instr_protos PUBLIC gRPC::grpc++)
 else()
