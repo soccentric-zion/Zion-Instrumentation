@@ -1,8 +1,8 @@
 // ============================================================================
 //  Arches Instrumentation — minimal ApplicationApi client
 //
-//  Copyright (C) 2026 Soccentric. All rights reserved.
-//  This file is part of a proprietary product of Soccentric.
+//  Copyright (C) 2026 SoCcentric
+//  Licensed under the MIT License; see the LICENSE file in the repository root.
 // ============================================================================
 /**
  * @file docs/example-client/main.cpp

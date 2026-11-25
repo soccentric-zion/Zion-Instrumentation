@@ -1,10 +1,10 @@
 // ============================================================================
 //  Arches Instrumentation
 //
-//  Copyright (C) 2026 Soccentric. All rights reserved.
+//  Copyright (C) 2026 SoCcentric
 //  Author: Sandesh Ghimire (sandesh@soccentric)
 //
-//  This file is part of a proprietary product of Soccentric.
+//  Licensed under the MIT License; see the LICENSE file in the repository root.
 //
 //  NO WARRANTY:
 //  This software is provided "AS IS", without warranty of any kind, either
@@ -22,7 +22,7 @@
  * @brief Self-contained cryptographic primitives: SHA-256 (FIPS 180-4), HMAC-SHA256 (RFC 2104), X25519 (RFC 7748), ChaCha20 (RFC 8439), and HKDF-SHA256 (RFC 5869), tested against published vectors (REQ §.2, §, §10).
  * @author Sandesh Ghimire (sandesh@soccentric)
  * @date 2026
- * @copyright (C) 2026 Soccentric. All rights reserved. Proprietary.
+ * @copyright (C) 2026 SoCcentric. Licensed under the MIT License.
  */
 
 #include "instr/common/crypto.h"

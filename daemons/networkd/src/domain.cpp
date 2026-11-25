@@ -1,10 +1,10 @@
 // ============================================================================
 //  Arches Instrumentation
 //
-//  Copyright (C) 2026 Soccentric. All rights reserved.
+//  Copyright (C) 2026 SoCcentric
 //  Author: Sandesh Ghimire (sandesh@soccentric)
 //
-//  This file is part of a proprietary product of Soccentric.
+//  Licensed under the MIT License; see the LICENSE file in the repository root.
 //
 //  NO WARRANTY:
 //  This software is provided "AS IS", without warranty of any kind, either
@@ -22,7 +22,7 @@
  * @brief networkd domain implementation (REQ §7.2, R8): plan rendering, firewall rules, remote-access windows, tunnel guard, time daemon state, and failover ranking.
  * @author Sandesh Ghimire (sandesh@soccentric)
  * @date 2026
- * @copyright (C) 2026 Soccentric. All rights reserved. Proprietary.
+ * @copyright (C) 2026 SoCcentric. Licensed under the MIT License.
  */
 
 #include "instr/networkd/domain.h"
