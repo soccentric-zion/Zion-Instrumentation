@@ -12,10 +12,6 @@
 //  merchantability, fitness for a particular purpose, and non-infringement.
 //  In no event shall Soccentric be liable for any claim, damages, or other
 //  liability arising from the use of this software.
-//
-//  This software may not be used, copied, modified, distributed, or
-//  disclosed, in whole or in part, without the express prior written
-//  consent of Soccentric.
 // ============================================================================
 /**
  * @file lib/common/include/instr/common/daemon_skeleton.h
