@@ -130,7 +130,7 @@ endif()
 if(GCOVR_BIN)
   add_custom_target(coverage
     COMMAND ${GCOVR_BIN} --root ${CMAKE_SOURCE_DIR}
-            --filter '.*\\.cpp$' --xml -o ${CMAKE_BINARY_DIR}/coverage.xml
+            --filter '.*\\.cpp$$' --xml -o ${CMAKE_BINARY_DIR}/coverage.xml
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMENT "Coverage report (gate enforced in Jenkins)")
 endif()
