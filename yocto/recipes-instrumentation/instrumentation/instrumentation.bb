@@ -76,6 +76,8 @@ EXTRA_OECMAKE = " \
 # catalog/CMakeLists.txt generates alarms_gen.h at build time. Cross-compiling,
 # it runs the HOST alarmgen, staged by a native variant of this same recipe.
 BBCLASSEXTEND = "native"
+# The native variant only stages the host alarmgen; it is machine-independent.
+COMPATIBLE_MACHINE:class-native = ".*"
 DEPENDS:append:class-target = " instrumentation-native"
 USERADD_PACKAGES:class-native = ""
 SYSTEMD_PACKAGES:class-native = ""
