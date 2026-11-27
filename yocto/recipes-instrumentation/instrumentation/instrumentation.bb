@@ -238,6 +238,9 @@ INSTR_BOARD:genericx86-64 = "x86-64"
 # the last point at which the mistake is cheap to catch.
 python __anonymous() {
     board = d.getVar('INSTR_BOARD')
+    # The native variant only stages the host alarmgen: no descriptors shipped.
+    if bb.data.inherits_class('native', d):
+        return
     if not board:
         bb.fatal("instrumentation: no INSTR_BOARD mapping for MACHINE '%s'. "
                  "Add an INSTR_BOARD:%s override to instrumentation.bb naming "
