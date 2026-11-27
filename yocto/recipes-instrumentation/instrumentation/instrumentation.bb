@@ -73,6 +73,25 @@ EXTRA_OECMAKE = " \
     -DCMAKE_SYSTEM_PROCESSOR=${TARGET_ARCH} \
 "
 
+# catalog/CMakeLists.txt generates alarms_gen.h at build time. Cross-compiling,
+# it runs the HOST alarmgen, staged by a native variant of this same recipe.
+BBCLASSEXTEND = "native"
+DEPENDS:append:class-target = " instrumentation-native"
+USERADD_PACKAGES:class-native = ""
+SYSTEMD_PACKAGES:class-native = ""
+RDEPENDS:${PN}:class-native = ""
+
+# gRPC carries Abseil as a private dependency; follow transitive shared-library
+# dependencies at final link time.
+LDFLAGS:append = " -Wl,--copy-dt-needed-entries"
+
+do_install:class-native() {
+    install -d ${D}${bindir}
+    install -m 0755 ${B}/catalog/alarmgen ${D}${bindir}/alarmgen
+}
+
+FILES:${PN}:class-native = "${bindir}/alarmgen"
+
 do_install() {
     install -d ${D}${bindir}
     install -m 0755 ${B}/daemons/istate/istate        ${D}${bindir}/instr-istate
