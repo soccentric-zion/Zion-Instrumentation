@@ -32,9 +32,6 @@ endif()
 find_package(yaml-cpp REQUIRED)
 find_package(GTest QUIET)
 
-SET (MAINFOLDER ${PROJECT_SOURCE_DIR}/output_dir)
-SET (EXECUTABLE_OUTPUT_PATH "${MAINFOLDER}/bin")
-SET (LIBRARY_OUTPUT_PATH "${MAINFOLDER}/lib")
 
 # ---- proto generation (R3: one IDL, one generator) ----
 set(PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/proto")
