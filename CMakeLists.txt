@@ -230,7 +230,12 @@ install(FILES
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/instrumentation")
 
 # ---- tests (§12) ----
-enable_testing()
+option(BUILD_TESTING "Build the test suite (needs GTest)" ON)
+if(BUILD_TESTING)
+  enable_testing()
+endif()
 # ---- docs (§14: generated so it cannot drift) ----
 add_subdirectory(docs)
-add_subdirectory(test)
+if(BUILD_TESTING)
+  add_subdirectory(test)
+endif()
