@@ -18,7 +18,7 @@ SRC_URI = "git://github.com/soccentric-zion/Zion-Instrumentation.git;protocol=ht
 # -- a release build must never silently float.
 # Held in its own variable: referencing SRCREV from inside SRCREV's own
 # expansion is self-referential and bitbake would recurse on it.
-INSTR_SRCREV ?= "5aa41250cb316dac8ad5242e38b1a37e11150371"
+INSTR_SRCREV ?= "aec3f8b4e9aeb7aa2f6a5e96bcc33c7a3a78904c"
 SRCREV = "${@d.getVar('AUTOREV') if d.getVar('ZION_DEV_BUILD') == '1' else d.getVar('INSTR_SRCREV')}"
 # One version for the whole suite (REQ §2). This used to read PV from
 # S/VERSION via a python expression: PV -> S -> WORKDIR -> PV (WORKDIR's own
