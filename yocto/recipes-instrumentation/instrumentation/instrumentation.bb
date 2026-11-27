@@ -106,16 +106,16 @@ do_install() {
     install -m 0755 ${B}/daemons/telemetry/telemetry  ${D}${bindir}/instr-telemetry
     install -m 0755 ${B}/daemons/ota/ota              ${D}${bindir}/instr-ota
     install -m 0755 ${B}/daemons/backup/backup        ${D}${bindir}/instr-backup
-    install -m 0755 ${B}/tools/istate_ctrl/istate_ctrl      ${D}${bindir}/istate_ctrl
-    install -m 0755 ${B}/tools/network_ctrl/network_ctrl    ${D}${bindir}/network_ctrl
-    install -m 0755 ${B}/tools/monitor_ctrl/monitor_ctrl    ${D}${bindir}/monitor_ctrl
-    install -m 0755 ${B}/tools/hardware_ctrl/hardware_ctrl  ${D}${bindir}/hardware_ctrl
-    install -m 0755 ${B}/tools/fault_ctrl/fault_ctrl        ${D}${bindir}/fault_ctrl
-    install -m 0755 ${B}/tools/alarm_ctrl/alarm_ctrl        ${D}${bindir}/alarm_ctrl
-    install -m 0755 ${B}/tools/log_ctrl/log_ctrl            ${D}${bindir}/log_ctrl
-    install -m 0755 ${B}/tools/telemetry_ctrl/telemetry_ctrl ${D}${bindir}/telemetry_ctrl
-    install -m 0755 ${B}/tools/ota_ctrl/ota_ctrl            ${D}${bindir}/ota_ctrl
-    install -m 0755 ${B}/tools/backup_ctrl/backup_ctrl      ${D}${bindir}/backup_ctrl
+    install -m 0755 ${B}/tools/istate_ctrl      ${D}${bindir}/istate_ctrl
+    install -m 0755 ${B}/tools/network_ctrl    ${D}${bindir}/network_ctrl
+    install -m 0755 ${B}/tools/monitor_ctrl    ${D}${bindir}/monitor_ctrl
+    install -m 0755 ${B}/tools/hardware_ctrl  ${D}${bindir}/hardware_ctrl
+    install -m 0755 ${B}/tools/fault_ctrl        ${D}${bindir}/fault_ctrl
+    install -m 0755 ${B}/tools/alarm_ctrl        ${D}${bindir}/alarm_ctrl
+    install -m 0755 ${B}/tools/log_ctrl            ${D}${bindir}/log_ctrl
+    install -m 0755 ${B}/tools/telemetry_ctrl ${D}${bindir}/telemetry_ctrl
+    install -m 0755 ${B}/tools/ota_ctrl            ${D}${bindir}/ota_ctrl
+    install -m 0755 ${B}/tools/backup_ctrl      ${D}${bindir}/backup_ctrl
 
     install -d ${D}${systemd_unitdir}/system
     install -m 0644 ${S}/system/systemd/*.service ${D}${systemd_unitdir}/system/
